@@ -1,8 +1,10 @@
 from network.huggingface_api import query_huggingface_model
 
-question = "There was a time when all dragons"
+with open('../prompts/test_prompt', 'r') as file_in:
+        question = file_in.read()
+
 response = query_huggingface_model(question)
 
 if response:
-    generated_text = response[0]["generated_text"]
-    print("Testo generato:", generated_text)
+    with open('../conversations/response', 'w', encoding='utf-8') as file_out:
+        file_out.write(response[0]["generated_text"])
