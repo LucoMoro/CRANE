@@ -1,3 +1,4 @@
+import json
 import os
 
 def get_iteration_id(file_path):
@@ -67,3 +68,15 @@ def ensure_conversation_path(conversations_path, conversation_id, iteration_id):
         os.makedirs(conversation_path)
     return conversation_path
 
+def save_model_responses(conversation_id, iteration_id, model_responses):
+    responses_iteration_path = f"../conversations/conversation_{conversation_id}/iteration_{iteration_id}"
+    output_file = os.path.join(responses_iteration_path, "responses.json")
+
+    data = {
+        "conversation_id": conversation_id,
+        "iteration_id": iteration_id,
+        "responses": model_responses
+    }
+
+    with open(output_file, "w") as output:
+        json.dump(data, output, indent=4)
