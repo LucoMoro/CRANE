@@ -5,8 +5,9 @@ from network.config import conversations_path, agent_id, responses
 from network.utils import ensure_conversation_path
 from network.utils import get_iteration_id, set_iteration_id, get_conversation_id, set_conversation_id
 
-iteration_id = get_iteration_id()
 conversation_id = get_conversation_id()
+iteration_path = f"../conversations/conversation_{conversation_id}/iteration_id"
+iteration_id = get_iteration_id(iteration_path)
 conversation_path = ensure_conversation_path(conversations_path, conversation_id, iteration_id)
 
 
@@ -25,4 +26,4 @@ while agent_id < 5:
 
 iteration_id = int(iteration_id)
 iteration_id += 1
-set_iteration_id(str(iteration_id))
+set_iteration_id(str(iteration_id), iteration_path)

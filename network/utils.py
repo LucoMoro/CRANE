@@ -1,23 +1,27 @@
 import os
 
-def get_iteration_id():
+def get_iteration_id(file_path):
     """
     Reads and returns the current iteration ID from the iteration_id file.
+
+    Args:
+        file_path (str): Path of the current iteration_id file.
 
     Returns:
         str: The iteration ID as a string.
     """
-    with open("../conversations/conversation_1/iteration_id", "r") as iteration_file:
+    with open(file_path, "r") as iteration_file:
         return iteration_file.read().strip()
 
-def set_iteration_id(iteration_count):
+def set_iteration_id(iteration_count, file_path):
     """
     Overwrites the ID of the current iteration from the iteration_id file
 
     Args:
         iteration_count (str): The content to write into the file.
+        file_path (str): Path of the current iteration_id file.
     """
-    with open("../conversations/conversation_1/iteration_id", "w") as iteration_file:
+    with open(file_path, "w") as iteration_file:
         return iteration_file.write(iteration_count)
 
 def get_conversation_id():
