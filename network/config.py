@@ -12,3 +12,4 @@ api_url = f"https://api-inference.huggingface.co/models/{model_id}"
 headers = {
     "Authorization": f"Bearer {api_key}"
 }
+
