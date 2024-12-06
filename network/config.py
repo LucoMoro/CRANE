@@ -13,3 +13,5 @@ headers = {
     "Authorization": f"Bearer {api_key}"
 }
 
+agent_id = 1
+responses = []

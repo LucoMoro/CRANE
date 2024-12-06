@@ -10,6 +10,16 @@ def get_iteration_id():
     with open("../conversations/conversation_1/iteration_id", "r") as iteration_file:
         return iteration_file.read().strip()
 
+def set_iteration_id(iteration_count):
+    """
+    Overwrites the ID of the current iteration from the iteration_id file
+
+    Args:
+        iteration_count (str): The content to write into the file.
+    """
+    with open("../conversations/conversation_1/iteration_id", "w") as iteration_file:
+        return iteration_file.write(iteration_count)
+
 def ensure_conversation_path(conversations_path, iteration_id):
     """
     Ensures that a directory for the given conversation iteration exists.
