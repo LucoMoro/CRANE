@@ -35,7 +35,7 @@ def get_conversation_id():
     with open("../conversations/conversation_id", "r") as conversation_file:
         return conversation_file.read().strip()
 
-def set_conversation_id(conversation_count):
+def set_automated_conversation_id(conversation_count):
     """
     Overwrites the ID of the current conversation from the conversation_id file
 
@@ -44,6 +44,16 @@ def set_conversation_id(conversation_count):
     """
     with open("../conversations/conversation_id", "w") as conversation_file:
         return conversation_file.write(conversation_count)
+
+def set_manual_conversation_id(manual_conversation_count):
+    """
+    Overwrites the ID of the current conversation with the ID given in input
+
+    Args:
+        manual_conversation_count (str): The content to write into the file.
+    """
+    with open("../conversations/conversation_id", "w") as conversation_file:
+        return conversation_file.write(manual_conversation_count)
 
 
 def ensure_conversation_path(conversations_path, conversation_id, iteration_id):
@@ -69,6 +79,20 @@ def ensure_conversation_path(conversations_path, conversation_id, iteration_id):
     return conversation_path
 
 def save_model_responses(conversation_id, iteration_id, model_responses):
+    """
+    Saves the model responses for a specific conversation and iteration.
+
+    This function creates a JSON file containing the model's responses,
+    along with metadata about the conversation and iteration.
+
+    Args:
+        conversation_id (str): The ID of the current conversation.
+        iteration_id (str): The ID of the current iteration.
+        model_responses (list): A list of responses from the model.
+
+    Returns:
+        None
+    """
     responses_iteration_path = f"../conversations/conversation_{conversation_id}/iteration_{iteration_id}"
     output_file = os.path.join(responses_iteration_path, "responses.json")
 
