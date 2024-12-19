@@ -1,0 +1,30 @@
+{
+  "name": "Reviewer 1",
+  "api_settings": {
+    "openai": {
+      "model": "",
+      "endpoint": "https://api.openai.com/v1/chat/completions",
+      "api_key": ""
+    },
+    "huggingface": {
+      "model": "bigscience/bloom",
+      "endpoint": "https://api-inference.huggingface.co/models/distilgpt2",
+      "api_key": ""
+    },
+    "default_provider": "openai"
+  },
+  "system_prompt": {
+    "context": "Sei un esperto di revisione del codice.",
+    "instructions": [
+      "Analizza il codice fornito per problemi di sicurezza e ottimizzazione.",
+      "Fornisci suggerimenti chiari e concisi."
+    ]
+  },
+  "utils": {
+    "log_level": "info",
+    "timeout_seconds": 15,
+    "retry_attempts": 3,
+    "environment": "production",
+    "notes": "Questo agente può passare dinamicamente da OpenAI a Hugging Face utilizzando il campo 'default_provider'."
+  }
+}
