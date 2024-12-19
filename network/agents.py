@@ -1,10 +1,13 @@
 from network.agents.agent_base import AgentBase
-from network.huggingface_api import query_huggingface_model
 from network.config import conversations_path, agent_id, responses
 from network.utils import ensure_conversation_path, save_model_responses
 from network.utils import get_iteration_id, set_iteration_id, get_conversation_id
 
-agent = AgentBase("../prompts/system_prompt_1/moderator.json").print()
+agent = AgentBase("../prompts/system_prompt_1/moderator.json")
+
+response = agent.query_model()
+
+print("Model Response:", response)
 
 
 """
