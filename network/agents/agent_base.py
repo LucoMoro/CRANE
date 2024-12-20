@@ -1,9 +1,4 @@
 import json
-from typing import Optional
-
-import os
-from contextlib import nullcontext
-from sys import exception
 
 import requests
 from network.config import headers

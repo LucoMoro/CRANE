@@ -18,7 +18,7 @@
     "instructions": "This file describes a personas professional"
   },
   "utils": {
-    "role": "reviwer",
-    "specialization": "security"
+    "role": "moderator",
+    "specialization": ""
   }
 }
