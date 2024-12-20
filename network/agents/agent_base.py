@@ -1,4 +1,5 @@
 import json
+from typing import Optional
 
 import os
 from contextlib import nullcontext
@@ -47,7 +48,7 @@ class AgentBase:
         print(self.context)
         print(self.instructions)
 
-    def query_model(self):
+    def query_model(self) -> dict | None:
         """
         Sends a question to a model via a POST request and returns the model's response.
 
@@ -74,3 +75,37 @@ class AgentBase:
         else:
             print(f"Error {response.status_code}: {response.text}")
             return None
+
+    def get_prompt(self) -> str:
+        """
+        Constructs and returns a prompt string based on the configured provider.
+
+        If the default provider is "openai", the function returns the instructions directly.
+        Otherwise, it constructs a prompt string by combining the context and instructions
+
+        Returns:
+            str: The formatted prompt string.
+        """
+        if self.default_provider == "openai":
+            return self.instructions
+        else:
+            result = f"System prompt: {self.context} \n prompt: {self.instructions}"
+            return result
+
+    def set_prompt(self, instructions: str, context: str = None) -> None:
+        """
+        Sets the instructions and optional context for the model.
+
+        Changes the context only if a new one is provided.
+
+        Args:
+            instructions (str): The main instructions or prompt to set.
+            context(str): Additional argument to pass a specific context (default is None).
+
+        Returns:
+          None
+        """
+        self.instructions = instructions
+        if context is not None:
+            self.context = context
+

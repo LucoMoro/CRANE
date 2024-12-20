@@ -7,7 +7,7 @@ agent = AgentBase("../prompts/system_prompt_1/moderator.json")
 
 response = agent.query_model()
 
-print("Model Response:", response)
+#print("Model Response:", response)
 
 
 """
