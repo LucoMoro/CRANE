@@ -11,7 +11,7 @@
       "endpoint": "https://api-inference.huggingface.co/models/distilgpt2",
       "api_key": ""
     },
-    "default_provider": "openai"
+    "default_provider": "huggingface"
   },
   "system_prompt": {
     "context": "Sei un esperto di revisione del codice.",

@@ -1,6 +1,7 @@
 import json
 
 import os
+from contextlib import nullcontext
 
 import requests
 from network.config import headers
@@ -13,23 +14,30 @@ class AgentBase:
         self.api_settings = agent_data.get("api_settings", {})
         self.system_prompt = agent_data.get("system_prompt", {})
         self.utils = agent_data.get("utils", {})
-
-        self.open_ai = self.api_settings.get("openai", {})
-        self.hugging_face = self.api_settings.get("huggingface", {})
         self.default_provider = self.api_settings.get("default_provider", {})
 
-        self.prompt_context = self.system_prompt.get("context", {})
-        self.prompt_instructions = self.system_prompt.get("instructions", {})
+        if self.default_provider == "openai":
+            self.open_ai = self.api_settings.get("openai", {})
+            self.model = self.open_ai.get("model", {})
+            self.endpoint = self.open_ai.get("endpoint", {})
+            self.api_key = self.open_ai.get("api_key", {})
+            self.hugging_face = nullcontext
+        else:
+            self.hugging_face = self.api_settings.get("huggingface", {})
+            self.model = self.hugging_face.get("model", {})
+            self.endpoint = self.hugging_face.get("endpoint", {})
+            self.api_key = self.hugging_face.get("api_key", {})
+            self.open_ai = nullcontext
 
-        self.endpoint = self.hugging_face.get("endpoint", {})
-
+        self.context = self.system_prompt.get("context", {})
+        self.instructions = self.system_prompt.get("instructions", {})
 
     def print(self):
         print(self.hugging_face)
         print(self.open_ai)
         print(self.default_provider)
-        print(self.prompt_context)
-        print(self.prompt_instructions)
+        print(self.context)
+        print(self.instructions)
 
     def query_model(self):
         """
@@ -51,7 +59,7 @@ class AgentBase:
         This function assumes that `api_url` (the endpoint URL of the Hugging Face model) and `headers`
         (the request headers, including any required authorization) are defined elsewhere in the code.
         """
-        response = requests.post(self.endpoint, headers=headers, json={"inputs": self.prompt_instructions})
+        response = requests.post(self.endpoint, headers=headers, json={"inputs": self.instructions})
 
         if response.status_code == 200:
             return response.json()
