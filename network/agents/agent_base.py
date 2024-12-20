@@ -24,16 +24,20 @@ class AgentBase:
                 self.model = self.open_ai.get("model", {})
                 self.endpoint = self.open_ai.get("endpoint", {})
                 self.api_key = self.open_ai.get("api_key", {})
-                self.hugging_face = nullcontext
+                self.hugging_face = None
             else:
                 self.hugging_face = self.api_settings.get("huggingface", {})
                 self.model = self.hugging_face.get("model", {})
                 self.endpoint = self.hugging_face.get("endpoint", {})
                 self.api_key = self.hugging_face.get("api_key", {})
-                self.open_ai = nullcontext
+                self.open_ai = None
 
             self.context = self.system_prompt.get("context", {})
             self.instructions = self.system_prompt.get("instructions", {})
+
+            self.utils = agent_data.get("utils", {})
+            self.role = self.utils.get("role", {})
+            self.specialization = self.utils.get("specialization", {})
 
         except FileNotFoundError:
             print(f"Error: File {file_path} not found")
@@ -47,6 +51,7 @@ class AgentBase:
         print(self.default_provider)
         print(self.context)
         print(self.instructions)
+        print(self.utils)
 
     def query_model(self) -> dict | None:
         """
