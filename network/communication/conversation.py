@@ -24,7 +24,8 @@ class Conversation:
             self.conversation_id = conversation_file.read().strip()
             return self.conversation_id
 
-    def set_conversation_id(self, conversation_count: str, file_path: str) -> None:
+    @staticmethod
+    def set_conversation_id(conversation_count: str, file_path: str) -> None:
         """
         Overwrites the ID of the current conversation from the conversation_id file
 
@@ -49,7 +50,8 @@ class Conversation:
             self.iteration_id = iteration_file.read().strip()
             return self.iteration_id
 
-    def set_iteration_id(self, iteration_count: str, file_path: str) -> None:
+    @staticmethod
+    def set_iteration_id(iteration_count: str, file_path: str) -> None:
         """
         Overwrites the ID of the current iteration from the iteration_id file
 
@@ -60,3 +62,48 @@ class Conversation:
         with open(file_path, "w") as iteration_file:
             iteration_file.write(iteration_count)
 
+    def ensure_conversation_path(self) -> str:
+        """
+        Ensures that a directory for the given conversation iteration exists.
+
+        If the directory does not exist, it creates the directory at the specified
+        path. The path is constructed using the base conversations_path and the
+        iteration_id.
+
+        Args:
+            conversations_path (str): The base path for all conversations.
+
+        Returns:
+            str: The full path to the conversation iteration directory.
+        """
+        conversation_path = f"../conversations/conversation_{self.conversation_id}/iteration_{self.iteration_id}"
+        existing_path = os.path.exists(conversation_path)
+        if not existing_path:
+            os.makedirs(conversation_path)
+        return conversation_path
+
+    #todo modify this method
+    def save_model_responses(self, model_responses) -> None:
+        """
+        Saves the model responses for a specific conversation and iteration.
+
+        This function creates a JSON file containing the model's responses,
+        along with metadata about the conversation and iteration.
+
+        Args:
+            model_responses (list): A list of responses from the model.
+
+        Returns:
+            None
+        """
+        responses_iteration_path = f"../conversations/conversation_{self.conversation_id}/iteration_{self.iteration_id}"
+        output_file = os.path.join(responses_iteration_path, "responses.json")
+
+        data = {
+            "conversation_id": self.conversation_id,
+            "iteration_id": self.iteration_id,
+            "responses": model_responses
+        }
+
+        with open(output_file, "w") as output:
+            json.dump(data, output, indent=4)
