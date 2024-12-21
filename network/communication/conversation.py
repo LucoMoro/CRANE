@@ -70,9 +70,6 @@ class Conversation:
         path. The path is constructed using the base conversations_path and the
         iteration_id.
 
-        Args:
-            conversations_path (str): The base path for all conversations.
-
         Returns:
             str: The full path to the conversation iteration directory.
         """
@@ -82,16 +79,15 @@ class Conversation:
             os.makedirs(conversation_path)
         return conversation_path
 
-    #todo modify this method
-    def save_model_responses(self, model_responses) -> None:
+    def save_model_responses(self, messages: list[Message] ) -> None:
         """
-        Saves the model responses for a specific conversation and iteration.
+        Saves the messages for a specific conversation and iteration.
 
-        This function creates a JSON file containing the model's responses,
+        This function creates a JSON file containing the models' responses,
         along with metadata about the conversation and iteration.
 
         Args:
-            model_responses (list): A list of responses from the model.
+            messages (list[Message]): A list of responses from the model.
 
         Returns:
             None
@@ -102,8 +98,25 @@ class Conversation:
         data = {
             "conversation_id": self.conversation_id,
             "iteration_id": self.iteration_id,
-            "responses": model_responses
+            "responses": messages
         }
 
         with open(output_file, "w") as output:
             json.dump(data, output, indent=4)
+
+
+    def add_message(self, message: Message) -> list[Message]:
+        """
+        Adds a message to the conversation's history.
+
+        Args:
+            message (Message): A response obtained by the model.
+
+        Returns:
+            list[Message]: list of messages that compose the conversation.
+        """
+        self.history.append(message.to_dict())
+        return self.history
+
+    def get_history(self) -> list[Message]:
+        return self.history

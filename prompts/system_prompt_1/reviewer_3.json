@@ -19,6 +19,7 @@
   },
   "utils": {
     "role": "reviewer",
-    "specialization": "testing"
+    "specialization": "testing",
+    "name": "reviewer_3"
   }
 }

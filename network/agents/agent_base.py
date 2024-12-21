@@ -33,6 +33,7 @@ class AgentBase:
             self.utils = agent_data.get("utils", {})
             self.role = self.utils.get("role", {})
             self.specialization = self.utils.get("specialization", {})
+            self.name = self.utils.get("name", {})
 
         except FileNotFoundError:
             print(f"Error: File {file_path} not found")
@@ -48,7 +49,7 @@ class AgentBase:
         print(self.instructions)
         print(self.utils)
 
-    def query_model(self) -> dict | None:
+    def query_model(self) -> str | None:
         """
         Sends a question to a model via a POST request and returns the model's response.
 
@@ -59,8 +60,8 @@ class AgentBase:
 
         Returns:
         -------
-        dict or None
-            If the request is successful (status code 200), returns the response from the model as a dictionary.
+        str or None
+            If the request is successful (status code 200), returns the response from the model as a str.
             If the request fails, prints an error message with the status code and error details, and returns None.
 
         Notes:
@@ -71,7 +72,7 @@ class AgentBase:
         response = requests.post(self.endpoint, headers=headers, json={"inputs": self.instructions})
 
         if response.status_code == 200:
-            return response.json()
+            return response.json()[0]["generated_text"]
         else:
             print(f"Error {response.status_code}: {response.text}")
             return None
@@ -108,4 +109,7 @@ class AgentBase:
         self.instructions = instructions
         if context is not None:
             self.context = context
+
+    def get_name(self) -> str:
+        return self.name
 

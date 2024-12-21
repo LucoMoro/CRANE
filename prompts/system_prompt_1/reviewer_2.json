@@ -19,6 +19,7 @@
   },
   "utils": {
     "role": "reviewer",
-    "specialization": "refactoring"
+    "specialization": "refactoring",
+    "name": "reviewer_2"
   }
 }

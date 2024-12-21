@@ -19,6 +19,7 @@
   },
   "utils": {
     "role": "reviewer",
-    "specialization": "security"
+    "specialization": "security",
+    "name": "reviewer_1"
   }
 }
