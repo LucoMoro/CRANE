@@ -86,7 +86,7 @@ class AgentBase:
     def get_instructions(self) -> str:
         return self.instructions
 
-    def set_instructions(self, instructions: str) -> None:
+    def set_instructions(self, instructions: str | dict) -> None:
         self.instructions = instructions
 
     def get_full_prompt(self) -> str:
@@ -105,7 +105,8 @@ class AgentBase:
             result = f"System prompt: {self.context} \n prompt: {self.instructions}"
             return result
 
-    def set_full_prompt(self, instructions: str, context: str = None) -> None:
+    #todo change each tmp_input_text_strings to input_text_strings when a performing LLM will be used
+    def set_full_prompt(self, instructions: str, input_text: str, context: str = None) -> None:
         """
         Sets the instructions and optional context for the model in the initial step.
 
@@ -113,12 +114,16 @@ class AgentBase:
 
         Args:
             instructions (str): The main instructions or prompt to set.
+            input_text(str): input of the iteration or conversation which has to be provided to the models.
             context(str): Additional argument to pass a specific context (default is None).
 
         Returns:
           None
         """
-        self.set_instructions(instructions)
+        #input_text_strings = [str(item) for item in input_text]
+        tmp_input_text_strings = "" #simulated the behaviour of input_text_strings which transforms the dictionary of
+                                    #input_texts into strings
+        self.set_instructions(instructions + "\n\n" .join(tmp_input_text_strings))
         if context is not None:
             self.set_context(context)
 

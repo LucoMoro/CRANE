@@ -13,7 +13,7 @@ reviewers = [reviewer1, reviewer2, reviewer3, reviewer4]
 
 conversation = Conversation(moderator, reviewers)
 
-
+"""
 conversation_id = conversation.get_conversation_id()
 iteration_path = f"../conversations/conversation_{conversation_id}/iteration_id"
 iteration_id = conversation.get_iteration_id(iteration_path)
@@ -32,8 +32,9 @@ conversation.save_model_responses(conversation.get_history())
 iteration_id = int(iteration_id)
 iteration_id += 1
 conversation.set_iteration_id(str(iteration_id), iteration_path)
+"""
 
-
+conversation.simulate_iteration("")
 
 
 

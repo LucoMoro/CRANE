@@ -1,3 +1,5 @@
+from unittest import skipIf
+
 from network.communication.message import Message
 import json
 import os
@@ -7,8 +9,8 @@ class Conversation:
         self.moderator = moderator
         self.reviewers = reviewers
         self.history = []
-        self.iteration_id = ""
-        self.conversation_id = ""
+        self.iteration_id = "0"
+        self.conversation_id = "0"
 
     def set_message(self, message: Message) -> None:
         self.history.append(message)
@@ -120,3 +122,39 @@ class Conversation:
 
     def get_history(self) -> list[Message]:
         return self.history
+
+    #todo: change every tmp_mod_response to mod_response when a performing LLM will be used
+    def simulate_iteration(self, input_text: str = None) -> None:
+        self.moderator.set_full_prompt(self.moderator.get_instructions(), input_text, self.moderator.get_context())
+        mod_response = self.moderator.query_model()
+        first_reviewer = ""
+
+        tmp_mod_response = "reviewer_3" #simulates the variable mod_response, which will only contain the name of the
+                                        #model that will need to be asked first.
+
+        for reviewer in self.reviewers:
+            if reviewer.get_name() == tmp_mod_response: #this if statement has to be executed only at the start of each iteration
+                reviewer_response =  reviewer.query_model()
+                reviewer.increment_iteration_messages()
+                message = Message(reviewer.get_name(), reviewer_response)
+                self.add_message(message)
+                first_reviewer = reviewer.get_name()
+                tmp_mod_response = "" #this ensures that once the model has been called the first time, it will lose his priority
+
+        for i in range(1): #it should be 2
+            for reviewer in self.reviewers:
+                reviewer.set_full_prompt(reviewer.get_instructions(), self.history)
+                if reviewer.get_name() != first_reviewer:
+                    if reviewer.get_iteration_messages() < 1: #todo: change the constant to 2 when a performing LLM will be used
+                       reviewer_response =  reviewer.query_model()
+                       reviewer.increment_iteration_messages()
+                       message = Message(reviewer.get_name(), reviewer_response)
+                       self.add_message(message)
+                    first_reviewer = "" #this ensures that once the other models have also responded,
+                                        # the first model will be able to respond too again
+
+        self.ensure_conversation_path()
+        self.save_model_responses(self.history)
+        iteration_id = int(self.iteration_id)
+        iteration_id += 1
+        self.set_iteration_id(str(iteration_id), f"../conversations/conversation_{self.conversation_id}/iteration_id")

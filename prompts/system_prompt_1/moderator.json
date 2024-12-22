@@ -15,7 +15,7 @@
   },
   "system_prompt": {
     "context": "Sei un esperto di revisione del codice.",
-    "instructions": "This file describes a personas "
+    "instructions": "i am so strange because..."
   },
   "utils": {
     "role": "moderator",
