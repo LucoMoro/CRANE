@@ -77,7 +77,19 @@ class AgentBase:
             print(f"Error {response.status_code}: {response.text}")
             return None
 
-    def get_prompt(self) -> str:
+    def get_context(self) -> str:
+        return self.context
+
+    def set_context(self, context: str) -> None:
+        self.context = context
+
+    def get_instructions(self) -> str:
+        return self.instructions
+
+    def set_instructions(self, instructions: str) -> None:
+        self.instructions = instructions
+
+    def get_full_prompt(self) -> str:
         """
         Constructs and returns a prompt string based on the configured provider.
 
@@ -93,9 +105,9 @@ class AgentBase:
             result = f"System prompt: {self.context} \n prompt: {self.instructions}"
             return result
 
-    def set_prompt(self, instructions: str, context: str = None) -> None:
+    def set_full_prompt(self, instructions: str, context: str = None) -> None:
         """
-        Sets the instructions and optional context for the model.
+        Sets the instructions and optional context for the model in the initial step.
 
         Changes the context only if a new one is provided.
 
@@ -106,9 +118,9 @@ class AgentBase:
         Returns:
           None
         """
-        self.instructions = instructions
+        self.set_instructions(instructions)
         if context is not None:
-            self.context = context
+            self.set_context(context)
 
     def get_name(self) -> str:
         return self.name
