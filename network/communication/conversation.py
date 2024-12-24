@@ -17,6 +17,7 @@ class Conversation:
         self.conversation_id = "0"
 
         self.base_path = base_path
+        self.conversation_manager_path = os.path.join(self.base_path, "conversation_id.json")
 
     def get_conversation_id(self) -> str:
         """
@@ -30,7 +31,7 @@ class Conversation:
             str: The value of the `conversation_id` attribute, or an
                  empty dictionary if not found.
         """
-        with open(self.base_path, "r") as conversation_file:
+        with open(self.conversation_manager_path, "r") as conversation_file:
             conversation_data = json.load(conversation_file)
             self.conversation_id = conversation_data.get("conversation_id", {})
             return self.conversation_id
@@ -47,70 +48,111 @@ class Conversation:
             new_conversation_id (str): The new value to assign to the
                                        `conversation_id` key.
         """
-        with open(self.base_path, "r") as read_conversation_file:
+        with open(self.conversation_manager_path, "r") as read_conversation_file:
             conversation_data = json.load(read_conversation_file)
             conversation_data["conversation_id"] = new_conversation_id
 
-            with open(self.base_path, "w") as write_conversation_file:
+            with open(self.conversation_manager_path, "w") as write_conversation_file:
                 json.dump(conversation_data, write_conversation_file, indent=4)
 
+    def increment_conversation_id(self):
+        int_conversation_id = int(self.conversation_id)
+        int_conversation_id = int_conversation_id + 1
+        self.set_conversation_id(str(int_conversation_id))
+
+    def reset_conversation(self):
+        self.set_conversation_id("0")
+
+    def ensure_conversation_path(self) -> str:
+        """
+        Ensures the existence of a directory path for the current conversation.
+        If the directory does not exist, it is created.
+
+        Returns:
+            str: The full path to the current conversation's directory.
+        """
+        current_conversation = f"conversation_{self.get_conversation_id()}"
+        full_conversation_path = os.path.join(self.base_path, current_conversation)
+        if not os.path.exists(full_conversation_path):
+            os.makedirs(full_conversation_path)
+        return full_conversation_path
 
     def get_iteration_id(self) -> str:
-        with open(self.base_path, "r") as iteration_file:
+        """
+        Retrieves the `iteration_id` from the JSON file.
+
+        This method opens the JSON file in read mode, reads the data,
+        and extracts the value of the `iteration_id` key. If the
+        key does not exist, it defaults to an empty dictionary.
+
+        Returns:
+            str: The value of the `iteration_id` attribute, or an
+                 empty dictionary if not found.
+        """
+        with open(self.conversation_manager_path, "r") as iteration_file:
             iteration_data = json.load(iteration_file)
             self.iteration_id = iteration_data.get("iteration_id", {})
             return self.iteration_id
 
     def set_iteration_id(self, new_iteration_id: str) -> None:
-        with open(self.base_path, "r") as read_iteration_file:
+        """
+        Updates the `iteration_id` in the JSON file with a new value.
+
+        This method reads the existing JSON data from the file, updates
+        the value of the `iteration_id` key, and then writes the updated
+        data back to the file.
+
+        Args:
+            new_iteration_id (str): The new value to assign to the
+                                       `iteration_id` key.
+        """
+        with open(self.conversation_manager_path, "r") as read_iteration_file:
             iteration_data = json.load(read_iteration_file)
             iteration_data["iteration_id"] = new_iteration_id
 
-            with open(self.base_path, "w") as write_iteration_file:
-                json.dump(iteration_data, write_iteration_file, indent=4 )
+            with open(self.conversation_manager_path, "w") as write_iteration_file:
+                json.dump(iteration_data, write_iteration_file, indent=4)
 
-    def ensure_conversation_path(self) -> str:
+    def increment_iteration_id(self):
+        int_iteration_id = int(self.iteration_id)
+        int_iteration_id = int_iteration_id + 1
+        self.set_iteration_id(str(int_iteration_id))
+
+    def reset_iteration(self):
+        self.set_iteration_id("0")
+
+    def ensure_iteration_path(self) -> str:
         """
-        Ensures that a directory for the given conversation iteration exists.
-
-        If the directory does not exist, it creates the directory at the specified
-        path. The path is constructed using the base conversations_path and the
-        iteration_id.
+        Ensures the existence of a directory path for the current iteration within a conversation.
+        If the directory does not exist, it is created.
 
         Returns:
-            str: The full path to the conversation iteration directory.
+            str: The full path to the current iteration's directory.
         """
-        conversation_path = f"../../conversations/conversation_{self.conversation_id}/iteration_{self.iteration_id}"
-        existing_path = os.path.exists(conversation_path)
-        if not existing_path:
-            os.makedirs(conversation_path)
-        return conversation_path
+        current_iteration = f"conversation_{self.get_conversation_id()}/iteration_{self.get_iteration_id()}"
+        full_iteration_path = os.path.join(self.base_path, current_iteration)
+        if not os.path.exists(full_iteration_path):
+            os.makedirs(full_iteration_path)
+        return full_iteration_path
 
-    def save_model_responses(self, messages: list[Message] ) -> None:
+    def save_model_responses(self, messages: list[Message]) -> None:
         """
-        Saves the messages for a specific conversation and iteration.
-
-        This function creates a JSON file containing the models' responses,
-        along with metadata about the conversation and iteration.
+        Saves a list of model responses as a JSON file in the current iteration's directory.
 
         Args:
-            messages (list[Message]): A list of responses from the model.
-
-        Returns:
-            None
+            messages (list[Message]): The list of messages to save, where each message is expected
+            to be an instance of the Message class.
         """
-        responses_iteration_path = f"../../conversations/conversation_{self.conversation_id}/iteration_{self.iteration_id}"
-        output_file = os.path.join(responses_iteration_path, "responses.json")
 
+        full_path = os.path.join(self.base_path, f"conversation_{self.get_conversation_id()}/iteration_{self.get_iteration_id()}")
+        output_file = os.path.join(full_path, "responses.json")
         data = {
             "conversation_id": self.conversation_id,
             "iteration_id": self.iteration_id,
             "responses": messages
         }
-
         with open(output_file, "w") as output:
             json.dump(data, output, indent=4)
-
 
     def set_message(self, message: Message) -> None:
         self.history.append(message)
@@ -160,9 +202,8 @@ class Conversation:
                        self.add_message(message)
                     first_reviewer = "" #this ensures that once the other models have also responded,
                                         # the first model will be able to respond too again
-        print(self.history)
-        #self.ensure_conversation_path()
-        #self.save_model_responses(self.history)
-        #iteration_id = int(self.iteration_id)
-        #iteration_id += 1
-        #self.set_iteration_id(str(iteration_id), f"../conversations/conversation_{self.conversation_id}/iteration_id")
+
+        self.ensure_conversation_path()
+        self.ensure_iteration_path()
+        self.save_model_responses(self.history)
+        self.increment_iteration_id()
