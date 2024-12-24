@@ -15,7 +15,7 @@ conversation = Conversation(moderator, reviewers)
 
 """
 conversation_id = conversation.get_conversation_id()
-iteration_path = f"../conversations/conversation_{conversation_id}/iteration_id"
+iteration_path = f"../conversations/conversation_1/iteration_id"
 iteration_id = conversation.get_iteration_id(iteration_path)
 conversation_path = conversation.ensure_conversation_path()
 
@@ -32,8 +32,19 @@ conversation.save_model_responses(conversation.get_history())
 iteration_id = int(iteration_id)
 iteration_id += 1
 conversation.set_iteration_id(str(iteration_id), iteration_path)
+
 """
 
+
+text = conversation.get_conversation_id()
+print(text)
+
+conversation.set_conversation_id("0")
+
+text2 = conversation.get_iteration_id()
+print(text2)
+
+conversation.set_iteration_id("0")
 conversation.simulate_iteration("")
 
 
