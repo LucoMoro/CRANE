@@ -175,8 +175,11 @@ class Conversation:
 
     #todo: change every tmp_mod_response to mod_response when a performing LLM will be used
     def simulate_iteration(self, input_text: str = None) -> None:
-        self.moderator.set_full_prompt(self.moderator.get_instructions(), input_text, self.moderator.get_context())
+        self.moderator.set_full_prompt(self.moderator.get_instructions(), input_text, self.moderator.get_context()) #todo delete here this setup
         mod_response = self.moderator.query_model()
+        if mod_response is None:
+            print("An error occurred.")
+            return None
         first_reviewer = ""
 
         tmp_mod_response = "reviewer_2" #simulates the variable mod_response, which will only contain the name of the
@@ -184,7 +187,10 @@ class Conversation:
 
         for reviewer in self.reviewers:
             if reviewer.get_name() == tmp_mod_response: #this if statement has to be executed only at the start of each iteration
-                reviewer_response =  reviewer.query_model()
+                reviewer_response = reviewer.query_model()
+                if reviewer_response is None:
+                    print("An error occurred.")
+                    return None
                 reviewer.increment_iteration_messages()
                 message = Message(reviewer.get_name(), reviewer_response)
                 self.add_message(message)
@@ -196,12 +202,14 @@ class Conversation:
                 reviewer.set_full_prompt(reviewer.get_instructions(), self.history)
                 if reviewer.get_name() != first_reviewer:
                     if reviewer.get_iteration_messages() < 1: #todo: change the constant to 2 when a performing LLM will be used
-                       reviewer_response =  reviewer.query_model()
+                       reviewer_response = reviewer.query_model()
+                       if reviewer_response is None:
+                           print("An error occurred.")
+                           return None
                        reviewer.increment_iteration_messages()
                        message = Message(reviewer.get_name(), reviewer_response)
                        self.add_message(message)
-                    first_reviewer = "" #this ensures that once the other models have also responded,
-                                        # the first model will be able to respond too again
+                    first_reviewer = "" #this ensures that once the other models have also responded, the first model will be able to respond too again
 
         self.ensure_conversation_path()
         self.ensure_iteration_path()
