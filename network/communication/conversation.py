@@ -1,5 +1,7 @@
 from unittest import skipIf
 
+from network.agents.moderator import Moderator
+from network.agents.reviewer import Reviewer
 from network.communication.message import Message
 import json
 import os
@@ -8,7 +10,7 @@ from network.config import base_path
 
 
 class Conversation:
-    def __init__(self, moderator, reviewers):
+    def __init__(self, moderator: Moderator, reviewers: list[Reviewer]):
         self.moderator = moderator
         self.reviewers = reviewers
         self.history = []
@@ -172,6 +174,18 @@ class Conversation:
 
     def get_history(self) -> list[Message]:
         return self.history
+
+    def get_moderator(self) -> Moderator:
+        return self.moderator
+
+    def set_moderator(self, new_moderator: Moderator) -> None:
+        self.moderator = new_moderator
+
+    def get_reviewers(self) -> list[Reviewer]:
+        return self.reviewers
+
+    def set_reviewers(self, new_reviewers: list[Reviewer]) -> None:
+        self.reviewers = new_reviewers
 
     #todo: change every tmp_mod_response to mod_response when a performing LLM will be used
     def simulate_iteration(self, input_text: str = None) -> None:

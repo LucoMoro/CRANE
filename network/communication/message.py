@@ -4,7 +4,7 @@ from operator import truediv
 import re
 
 class Message:
-    def __init__(self, sender, content):
+    def __init__(self, sender: str, content):
         self.sender = sender
         self.content = content
         self.response_to = ""
@@ -25,7 +25,7 @@ class Message:
 
     def extract_response_to_pattern(self) -> None:
         """
-        Extracts the name of the agent being responded to from the content.
+        Extracts the name of the receiver agent to from the content.
 
         This method searches for a pattern used for responding to a specific agent.
         If a match is found, it assigns the extracted name to `self.response_to`.

@@ -151,7 +151,7 @@ class AgentBase:
             return result
 
     #todo change each tmp_input_text_strings to input_text_strings when a performing LLM will be used
-    def set_full_prompt(self, instructions: str, input_text: str, context: str = None) -> None:
+    def set_full_prompt(self, instructions: str, input_text, context: str = None) -> None:
         """
         Sets the instructions and optional context for the model in the initial step.
 
@@ -166,7 +166,7 @@ class AgentBase:
           None
         """
         #input_text_strings = [str(item) for item in input_text]
-        tmp_input_text_strings = "" #simulated the behaviour of input_text_strings which transforms the dictionary of
+        tmp_input_text_strings = "" #simulates the behaviour of input_text_strings which transforms the dictionary of
                                     #input_texts into strings
         self.set_instructions(instructions + "\n\n" .join(tmp_input_text_strings))
         if context is not None:
