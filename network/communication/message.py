@@ -1,4 +1,5 @@
 import json
+from lib2to3.fixes.fix_input import context
 from operator import truediv
 
 import re
@@ -8,7 +9,7 @@ class Message:
         self.sender = sender
         self.content = content
         self.response_to = ""
-        self.response_to_pattern = "In response to: "
+        self.response_to_pattern = "in response to: "
 
     def contains_response_to(self) -> bool:
         """
@@ -34,7 +35,8 @@ class Message:
              None
         """
         pattern = rf"{self.response_to_pattern}(\w+)"
-        match = re.search(pattern, self.content)
+        lower_content = self.content.lower() #needed to momentarily lower the agent's output
+        match = re.search(pattern, lower_content)
         if match:
             self.response_to = match.group(1)
         else:

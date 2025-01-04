@@ -3,6 +3,8 @@ import json
 import requests
 from network.config import headers
 
+import re
+
 class AgentBase:
     def __init__(self, file_path):
         try:
@@ -97,8 +99,17 @@ class AgentBase:
                 # Send the request
                 response = requests.post(self.endpoint, headers=headers, json=payload, timeout=self.timeout)
 
-                if response.status_code == 200:
-                    return response.json()[0]["generated_text"]
+                if response.status_code == 200: #based on the provider, the response will be cleared in order to maintain only the output of the agent
+                    if self.default_provider == "openai":
+                        #todo: check which pattern is produced by the openai response and try to maintain only the output while excluding the input taken by the LLM
+                        return response.json()[0]["generated_text"]
+                    elif self.default_provider == "huggingface":
+                        pattern = r"Instructions: \s*(.*)"
+                        match = re.search(pattern, response.json()[0]["generated_text"], re.DOTALL)
+                        if match:
+                            return match.group(1)
+                        else:
+                            return None
                 elif response.status_code == 503:
                     print(f"Service unavailable. Retrying in {self.wait_time} seconds...")
                 elif response.status_code == 400:
