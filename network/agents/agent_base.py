@@ -77,7 +77,25 @@ class AgentBase:
         """
         for i in range(0, self.request_retries):
             try:
-                response = requests.post(self.endpoint, headers=headers, json={"inputs": self.instructions}, timeout=self.timeout)
+                if self.default_provider == "openai":
+                    # OpenAI requires a structured 'messages' format
+                    payload = {
+                        "model": self.model,
+                        "messages": [
+                            {"role": "system", "content": self.context},
+                            {"role": "user", "content": self.instructions}
+                        ]
+                    }
+                elif self.default_provider == "huggingface":
+                    # Hugging Face uses a single 'inputs' string
+                    payload = {
+                        "inputs": f"Context: {self.context}\nInstructions: {self.instructions}"
+                    }
+                else:
+                    raise ValueError("Unsupported provider")
+
+                # Send the request
+                response = requests.post(self.endpoint, headers=headers, json=payload, timeout=self.timeout)
 
                 if response.status_code == 200:
                     return response.json()[0]["generated_text"]

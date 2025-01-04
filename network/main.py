@@ -15,7 +15,7 @@ conversation = Conversation(moderator, reviewers)
 #response_message = Message("test_1", "i am writing something to test the new feature. In response to: reviewer_1 test")
 #conversation.add_message(response_message)
 
-conversation.simulate_iteration("")
+conversation.simulate_conversation("")
 
 
 

@@ -229,3 +229,7 @@ class Conversation:
         self.ensure_iteration_path()
         self.save_model_responses(self.history)
         self.increment_iteration_id()
+
+    def simulate_conversation(self, input_text: str = None) -> None:
+        self.simulate_iteration(input_text)
+        return None
