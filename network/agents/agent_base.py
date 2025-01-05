@@ -187,8 +187,8 @@ class AgentBase:
         Changes the context only if a new one is provided.
 
         Args:
-            instructions (str): The main instructions or prompt to set.
-            input_text(str): input of the iteration or conversation which has to be provided to the models.
+            instructions (str): The prompt of the model.
+            input_text(str): The input of the iteration or conversation which has to be provided to the models.
             context(str): Additional argument to pass a specific context (default is None).
 
         Returns:
@@ -197,7 +197,7 @@ class AgentBase:
         #input_text_strings = [str(item) for item in input_text]
         tmp_input_text_strings = "" #simulates the behaviour of input_text_strings which transforms the dictionary of
                                     #input_texts into strings
-        self.set_instructions(instructions + "\n\n" .join(tmp_input_text_strings))
+        self.set_instructions(instructions + "\n\n" .join(tmp_input_text_strings)) #needed in order to correctly query the model
         if context is not None:
             self.set_context(context)
 

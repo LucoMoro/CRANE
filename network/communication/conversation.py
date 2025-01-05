@@ -21,6 +21,8 @@ class Conversation:
         self.base_path = base_path
         self.conversation_manager_path = os.path.join(self.base_path, "conversation_id.json")
 
+        self.stopping_condition = False
+
     def get_conversation_id(self) -> str:
         """
         Retrieves the `conversation_id` from the JSON file.
@@ -187,13 +189,45 @@ class Conversation:
     def set_reviewers(self, new_reviewers: list[Reviewer]) -> None:
         self.reviewers = new_reviewers
 
+    def get_stopping_condition(self) -> bool:
+        return self.stopping_condition
+
+    def set_stopping_condition(self, stopping_condition : bool ) -> None:
+        self.stopping_condition = stopping_condition
+
     #todo: change every tmp_mod_response to mod_response when a performing LLM will be used
     def simulate_iteration(self, input_text: str = None) -> None:
-        self.moderator.set_full_prompt(self.moderator.get_instructions(), input_text, self.moderator.get_context()) #todo delete here this setup
-        mod_response = self.moderator.query_model()
-        if mod_response is None:
-            print("An error occurred.")
-            return None
+        """
+        Simulates an iteration of a multi-model review and response process.
+
+        This method orchestrates the interactions between a "moderator" model and a list of "reviewer"
+        models. It ensures that all models contribute to the conversation.
+
+        Args:
+            input_text (str, optional): Input of the current iteration.
+
+        **Moderator Initialization**:
+           - Based on the input, the moderator's prompt is set and then queried.
+           - As a response, the moderator determines the first reviewer to be queried in the current iteration.
+
+        **Initial Reviewer Selection**:
+           - The first reviewer response is processed and added to the iteration history.
+
+        **Subsequent Review Rounds**:
+           - All reviewers, except the initial one, are queried ensuring that each reviewer contributes at most 2 times in each iteration.
+           - Reviewer responses are processed and added to the iteration history
+
+        **Finalization**:
+           - Validates the conversation's integrity and iteration path.
+           - Increments the iteration ID to track progress.
+        """
+        for i in range(0, 5): #todo: eventually let the user manually decide the range
+            self.moderator.set_full_prompt(self.moderator.get_instructions(), input_text, self.moderator.get_context()) #todo delete here this setup
+            mod_response = self.moderator.query_model()
+            if mod_response is None:
+                print("An error occurred while communicating with the moderator.")
+            elif mod_response is not None:
+                break
         first_reviewer = ""
 
         tmp_mod_response = "reviewer_2" #simulates the variable mod_response, which will only contain the name of the
@@ -203,8 +237,8 @@ class Conversation:
             if reviewer.get_name() == tmp_mod_response: #this if statement has to be executed only at the start of each iteration
                 reviewer_response = reviewer.query_model()
                 if reviewer_response is None:
-                    print("An error occurred.")
-                    return None
+                    print("An error occurred while communicating with " + reviewer.get_name() + ".")
+                    reviewer_response = ""
                 reviewer.increment_iteration_messages()
                 message = Message(reviewer.get_name(), reviewer_response)
                 self.add_message(message)
@@ -225,11 +259,23 @@ class Conversation:
                        self.add_message(message)
                     first_reviewer = "" #this ensures that once the other models have also responded, the first model will be able to respond too again
 
-        self.ensure_conversation_path()
-        self.ensure_iteration_path()
         self.save_model_responses(self.history)
         self.increment_iteration_id()
 
     def simulate_conversation(self, input_text: str = None) -> None:
-        self.simulate_iteration(input_text)
-        return None
+        self.ensure_conversation_path() #ensures that the conversation's folder path exists
+        current_input_text = input_text
+
+        while not self.stopping_condition:
+            self.ensure_iteration_path() #ensures that the iteration's folder path exists
+            self.simulate_iteration(current_input_text) #simulates the iteration
+            #todo: add a call to an agent that, based on the current iteration, works on the problem in input
+            self.check_stopping_condition() #checks if the stopping condition is reached
+
+        self.increment_conversation_id()
+        self.reset_iteration()
+
+
+    def check_stopping_condition(self) -> bool:
+        self.stopping_condition = True
+        return True
