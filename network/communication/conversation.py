@@ -1,5 +1,6 @@
 from unittest import skipIf
 
+from network.agents.agent_base import AgentBase
 from network.agents.moderator import Moderator
 from network.agents.reviewer import Reviewer
 from network.communication.message import Message
@@ -8,11 +9,11 @@ import os
 
 from network.config import base_path
 
-
 class Conversation:
-    def __init__(self, moderator: Moderator, reviewers: list[Reviewer]):
+    def __init__(self, moderator: Moderator, reviewers: list[Reviewer], feedback_agent: AgentBase):
         self.moderator = moderator
         self.reviewers = reviewers
+        self.feedback_agent = feedback_agent
         self.history = []
 
         self.iteration_id = "0"
@@ -189,6 +190,12 @@ class Conversation:
     def set_reviewers(self, new_reviewers: list[Reviewer]) -> None:
         self.reviewers = new_reviewers
 
+    def get_feedback_agent(self) -> AgentBase:
+        return self.feedback_agent
+
+    def set_feedback_agent(self, new_feedback_agent: AgentBase ):
+        self.feedback_agent = new_feedback_agent
+
     def get_stopping_condition(self) -> bool:
         return self.stopping_condition
 
@@ -253,7 +260,7 @@ class Conversation:
                        reviewer_response = reviewer.query_model()
                        if reviewer_response is None:
                            print("An error occurred.")
-                           return None
+                           reviewer_response = "" #the reviewers are noe non-blocking: if some user do not respond, the conversation will proceed
                        reviewer.increment_iteration_messages()
                        message = Message(reviewer.get_name(), reviewer_response)
                        self.add_message(message)
@@ -264,18 +271,68 @@ class Conversation:
 
     def simulate_conversation(self, input_text: str = None) -> None:
         self.ensure_conversation_path() #ensures that the conversation's folder path exists
-        current_input_text = input_text
+
+        self.ensure_iteration_path() #ensures that the iteration's folder path exists
+        self.simulate_iteration(input_text) #simulates the iteration
+        self.check_stopping_condition() #checks if the stopping condition is reached
 
         while not self.stopping_condition:
-            self.ensure_iteration_path() #ensures that the iteration's folder path exists
-            self.simulate_iteration(current_input_text) #simulates the iteration
-            #todo: add a call to an agent that, based on the current iteration, works on the problem in input
-            self.check_stopping_condition() #checks if the stopping condition is reached
+            self.ensure_iteration_path() # ensures that the iteration's folder path exists
+            summarized_history = self.summarize_iteration_history() #summarizes the previous iteration's history
+            current_input_text = self.fetch_model_feedback(summarized_history) #provides the summarized history as a feedback to the model
+            self.simulate_iteration(current_input_text)  # simulates the iteration
+            self.check_stopping_condition()  # checks if the stopping condition is reached
 
         self.increment_conversation_id()
         self.reset_iteration()
 
+    def fetch_model_feedback(self, summarized_history) -> str:
+        """
+        Fetches feedback from the model based on the agent's instructions and history.
+
+        This method constructs a prompt using the agent's instructions and history.
+        If a response is successfully retrieved, it is returned immediately.
+
+        Returns:
+            str: The feedback response from the model.
+        """
+        self.feedback_agent.set_full_prompt(self.feedback_agent.get_instructions(), summarized_history)
+        for i in range(0, 5):
+            feedback_response = self.feedback_agent.query_model()
+            if feedback_response is None:
+                print("An error occurred while communicating with the feedback agent.")
+            elif feedback_response is not None:
+                return feedback_response
+        return ""
+
+    def summarize_iteration_history(self) -> str:
+        """
+        Summarizes the input history using the moderator.
+
+        This method constructs a summarization prompt based on the moderator's summarization prompt
+        and the current history. If successful, the history is cleared to make room for the new history,
+        and the summarized response is returned.
+
+        Returns:
+            str: The summarized response from the moderator model.
+                 Returns an empty string if no valid response is obtained.
+        """
+        self.moderator.set_full_prompt(self.moderator.get_summarization_prompt(), self.history)
+        for i in range(0, 5):
+            summarized_response = self.moderator.query_model()
+            if summarized_response is None:
+                print("An error occurred while communicating with the moderator during the summarization of the input.")
+            elif summarized_response is not None:
+                self.history = [] #if the history is correctly summarized, the iteration's history will be deleted leaving space for the new one
+                return summarized_response
+        return ""
 
     def check_stopping_condition(self) -> bool:
+        """
+        Checks whether the stopping condition for the process has been met.
+
+        Returns:
+            bool: returns True if the stopping condition has been met.
+        """
         self.stopping_condition = True
         return True

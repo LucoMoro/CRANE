@@ -1,0 +1,25 @@
+{
+  "name": "Reviewer 1",
+  "api_settings": {
+    "openai": {
+      "model": "",
+      "endpoint": "https://api.openai.com/v1/chat/completions",
+      "api_key": ""
+    },
+    "huggingface": {
+      "model": "distilgpt2",
+      "endpoint": "https://api-inference.huggingface.co/models/distilgpt2",
+      "api_key": ""
+    },
+    "default_provider": "huggingface"
+  },
+  "system_prompt": {
+    "context": "Sei un esperto di revisione del codice.",
+    "instructions": "This file describes a personas professional"
+  },
+  "utils": {
+    "role": "external agent",
+    "specialization": "programming",
+    "name": "feedback_agent"
+  }
+}

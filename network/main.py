@@ -1,3 +1,4 @@
+from network.agents.agent_base import AgentBase
 from network.agents.moderator import Moderator
 from network.agents.reviewer import Reviewer
 from network.communication.conversation import Conversation
@@ -10,9 +11,11 @@ reviewer3 = Reviewer("../prompts/system_prompt_1/reviewer_3.json")
 reviewer4 = Reviewer("../prompts/system_prompt_1/reviewer_4.json")
 reviewers = [reviewer1, reviewer2, reviewer3, reviewer4]
 
-conversation = Conversation(moderator, reviewers)
+feedback_agent = AgentBase("../prompts/system_prompt_1/feedback_agent.json")
 
-#response_message = Message("test_1", "test i am writing something In response to: reviewer_1 to test the new feature CAPS TEST")
+conversation = Conversation(moderator, reviewers, feedback_agent)
+
+#response_message = Message("test_1", "test i am writing something in response to: reviewer_1 to test the new feature CAPS TEST")
 #conversation.add_message(response_message)
 
 conversation.simulate_conversation("")
