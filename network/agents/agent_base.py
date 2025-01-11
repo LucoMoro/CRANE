@@ -106,16 +106,8 @@ class AgentBase:
                 response = requests.post(self.endpoint, headers=headers, json=payload, timeout=self.timeout)
 
                 if response.status_code == 200: #based on the provider, the response will be cleared in order to maintain only the output of the agent
-                    if self.default_provider == "openai":
-                        #todo: check which pattern is produced by the openai response and try to maintain only the output while excluding the input taken by the LLM
-                        return response.json()[0]["generated_text"]
-                    elif self.default_provider == "huggingface":
-                        pattern = r"Instructions: \s*(.*)"
-                        match = re.search(pattern, response.json()[0]["generated_text"], re.DOTALL)
-                        if match:
-                            return match.group(1)
-                        else:
-                            return None
+                    instructions = self.get_instructions_from_response(response)
+                    return instructions
                 elif response.status_code == 503:
                     print(f"Service unavailable. Retrying in {self.wait_time} seconds...")
                 elif response.status_code == 400:
@@ -203,6 +195,31 @@ class AgentBase:
         self.set_instructions(instructions + "\n\n" .join(input_text_strings)) #needed in order to correctly query the model
         if context is not None:
             self.set_context(context)
+
+    def get_instructions_from_response(self, response) -> str | None:
+        """
+        Extracts the generated instructions from the model's response based on the default provider.
+
+        This method handles the response differently depending on whether the provider is OpenAI or Hugging Face:
+        - For OpenAI: Assumes the response contains the generated output in a specific format and returns the generated text.
+        - For Hugging Face: Uses a regular expression to extract the instructions from the generated text, specifically looking for content after the "Instructions:" label.
+
+        Args:
+            response: The HTTP response object from the API call. It is expected to contain a JSON payload with the generated output.
+
+        Returns:
+            str | None: The extracted instructions as a string, or `None` if no instructions could be extracted or the response format is invalid.
+        """
+        if self.default_provider == "openai":
+            # todo: check which pattern is produced by the openai response and try to maintain only the output while excluding the input taken by the LLM
+            return response.json()[0]["generated_text"]
+        elif self.default_provider == "huggingface":
+            pattern = r"Instructions: \s*(.*)"
+            match = re.search(pattern, response.json()[0]["generated_text"], re.DOTALL)
+            if match:
+                return match.group(1)
+            else:
+                return None
 
     def get_name(self) -> str:
         return self.name
