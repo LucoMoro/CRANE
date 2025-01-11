@@ -21,12 +21,14 @@ class AgentBase:
                 self.model = self.open_ai.get("model", {})
                 self.endpoint = self.open_ai.get("endpoint", {})
                 self.api_key = self.open_ai.get("api_key", {})
+                self.max_tokens = self.open_ai.get("max_tokens", {})
                 self.hugging_face = None
             else:
                 self.hugging_face = self.api_settings.get("huggingface", {})
                 self.model = self.hugging_face.get("model", {})
                 self.endpoint = self.hugging_face.get("endpoint", {})
                 self.api_key = self.hugging_face.get("api_key", {})
+                self.max_tokens = self.hugging_face.get("max_new_tokens", {})
                 self.open_ai = None
 
             self.context = self.system_prompt.get("context", {})
@@ -86,12 +88,16 @@ class AgentBase:
                         "messages": [
                             {"role": "system", "content": self.context},
                             {"role": "user", "content": self.instructions}
-                        ]
+                        ],
+                        "max_tokens": int(self.max_tokens),
                     }
                 elif self.default_provider == "huggingface":
                     # Hugging Face uses a single 'inputs' string
                     payload = {
-                        "inputs": f"Context: {self.context}\nInstructions: {self.instructions}"
+                        "inputs": f"Context: {self.context}\nInstructions: {self.instructions}",
+                        "parameters": {
+                            "max_new_tokens": int(self.max_tokens),  # Add token limit for Hugging Face
+                        }
                     }
                 else:
                     raise ValueError("Unsupported provider")
@@ -179,7 +185,6 @@ class AgentBase:
             result = f"System prompt: {self.context} \n prompt: {self.instructions}"
             return result
 
-    #todo change each tmp_input_text_strings to input_text_strings when a performing LLM will be used
     def set_full_prompt(self, instructions: str, input_text, context: str = None) -> None:
         """
         Sets the instructions and optional context for the model in the initial step.
@@ -194,10 +199,8 @@ class AgentBase:
         Returns:
           None
         """
-        #input_text_strings = [str(item) for item in input_text]
-        tmp_input_text_strings = "" #simulates the behaviour of input_text_strings which transforms the dictionary of
-                                    #input_texts into strings
-        self.set_instructions(instructions + "\n\n" .join(tmp_input_text_strings)) #needed in order to correctly query the model
+        input_text_strings = [str(item) for item in input_text]
+        self.set_instructions(instructions + "\n\n" .join(input_text_strings)) #needed in order to correctly query the model
         if context is not None:
             self.set_context(context)
 

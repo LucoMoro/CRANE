@@ -4,12 +4,14 @@
     "openai": {
       "model": "",
       "endpoint": "https://api.openai.com/v1/chat/completions",
-      "api_key": ""
+      "api_key": "",
+      "max_tokens": 100
     },
     "huggingface": {
       "model": "distilgpt2",
       "endpoint": "https://api-inference.huggingface.co/models/distilgpt2",
-      "api_key": ""
+      "api_key": "",
+      "max_new_tokens": 50
     },
     "default_provider": "huggingface"
   },
