@@ -19,7 +19,8 @@ class Message:
             bool: True if message is in response to a specific agent,
                   False otherwise
         """
-        if self.response_to_pattern in self.content:
+        lower_content = self.content.lower()
+        if self.response_to_pattern in lower_content:
             return True
         else:
             return False

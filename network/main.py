@@ -15,8 +15,11 @@ feedback_agent = AgentBase("../prompts/system_prompt_1/feedback_agent.json")
 
 conversation = Conversation(moderator, reviewers, feedback_agent)
 
-#response_message = Message("test_1", "test i am writing something in response to: reviewer_1 to test the new feature CAPS TEST")
-#conversation.add_message(response_message)
+#response_message = Message("test_1", "test i am writing something In response to: reviewer_1 to test the new feature CAPS TEST")
+#nversation.add_message(response_message)
+
+#response_message1 = Message("test_2", "test i am writing something in response to: reviewer_3 to test the new feature CAPS TEST")
+#conversation.add_message(response_message1)
 
 conversation.simulate_conversation("")
 
