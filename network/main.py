@@ -19,12 +19,10 @@ conversation = Conversation(moderator, reviewers, feedback_agent)
 conversation_manager = ConversationManager(conversation)
 
 #response_message = Message("test_1", "test i am writing something In response to: reviewer_1 to test the new feature CAPS TEST")
-#nversation.add_message(response_message)
+#conversation.add_message(response_message)
 
 response_message1 = Message("test_2", "test i am writing something in response to: reviewer_3 to test the new feature CAPS TEST")
 conversation.add_message(response_message1)
 
 conversation_manager.simulate_conversation("")
-
-
 
