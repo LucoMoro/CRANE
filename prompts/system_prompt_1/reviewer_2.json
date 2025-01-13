@@ -22,6 +22,7 @@
   "utils": {
     "role": "reviewer",
     "specialization": "refactoring",
-    "name": "reviewer_2"
+    "name": "reviewer_2",
+    "personality": "ISTP"
   }
 }

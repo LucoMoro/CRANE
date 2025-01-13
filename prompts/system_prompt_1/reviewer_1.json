@@ -22,6 +22,7 @@
   "utils": {
     "role": "reviewer",
     "specialization": "security",
-    "name": "reviewer_1"
+    "name": "reviewer_1",
+    "personality": "INFJ"
   }
 }
