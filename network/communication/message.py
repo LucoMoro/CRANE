@@ -36,10 +36,10 @@ class Message:
              None
         """
         pattern = rf"{self.response_to_pattern}(\w+)"
-        lower_content = self.content.lower() #needed to momentarily lower the agent's output
-        match = re.search(pattern, lower_content)
+        match = re.search(pattern, self.content, re.IGNORECASE) #allows to search the pattern while being cae insensitive
         if match:
-            self.content = self.content.replace(self.response_to_pattern+""+match.group(1), "") #allows to remove the pattern "in response to: " once is recognized the first time
+            matched_substring = match.group(0)
+            self.content = self.content.replace(matched_substring, "", 1) #allows to remove the pattern "in response to: " once is recognized the first time
             self.response_to = match.group(1)
         else:
             self.response_to = ""
