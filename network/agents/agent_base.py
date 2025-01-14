@@ -102,11 +102,16 @@ class AgentBase:
                 else:
                     raise ValueError("Unsupported provider")
 
+                #tot_length = len(self.context.split()) + len(self.instructions.split())
+                #print(f"tot_length is {tot_length}")
+
                 # Send the request
                 response = requests.post(self.endpoint, headers=headers, json=payload, timeout=self.timeout)
-
                 if response.status_code == 200: #based on the provider, the response will be cleared in order to maintain only the output of the agent
+                    #print(f"the response length of {self.name} is:" + str(len(response.json()[0]["generated_text"].split())))
+                    #print(response.json())
                     instructions = self.get_instructions_from_response(response)
+                    #print(f"the instructions length of {self.name} is:" + str(len(instructions.split())))
                     return instructions
                 elif response.status_code == 503:
                     print(f"Service unavailable. Retrying in {self.wait_time} seconds...")
@@ -196,6 +201,7 @@ class AgentBase:
         if context is not None:
             self.set_context(context)
 
+    #todo change how this method is implemented
     def get_instructions_from_response(self, response) -> str | None:
         """
         Extracts the generated instructions from the model's response based on the default provider.

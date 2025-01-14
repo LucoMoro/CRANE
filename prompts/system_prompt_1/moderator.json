@@ -11,7 +11,7 @@
       "model": "",
       "endpoint": "https://api-inference.huggingface.co/models/EleutherAI/gpt-neo-2.7B",
       "api_key": "",
-      "max_new_tokens": 100
+      "max_new_tokens": 50
     },
     "default_provider": "huggingface"
   },

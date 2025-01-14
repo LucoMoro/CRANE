@@ -11,7 +11,7 @@
       "model": "distilgpt2",
       "endpoint": "https://api-inference.huggingface.co/models/distilgpt2",
       "api_key": "",
-      "max_new_tokens": 100
+      "max_new_tokens": 50
     },
     "default_provider": "huggingface"
   },
