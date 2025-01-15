@@ -156,6 +156,24 @@ class ConversationManager:
         with open(output_file, "w") as output:
             json.dump(data, output, indent=4)
 
+    def save_moderator_response(self, message, file_name: str) -> None:
+        """
+        Saves the response of the moderator as a JSON file in the current iteration's directory.
+
+        Args:
+            message: The messages to save. It is expected to be an instance of the Message class.
+            file_name (str): the name of the json file in which the response has to be saved
+        """
+        full_path = os.path.join(self.base_path, f"conversation_{self.get_conversation_id()}/iteration_{self.get_iteration_id()}")
+        moderator_file = os.path.join(full_path, f"{file_name}.json")
+        data = {
+            "conversation_id": self.conversation_id,
+            "iteration_id": self.iteration_id,
+            "response": [message]
+        }
+        with open(moderator_file, "w") as output:
+            json.dump(data, output, indent=4)
+
     #todo: change every tmp_mod_response to mod_response when a performing LLM will be used
     def simulate_iteration(self, input_text: str = None) -> None:
         """
@@ -189,6 +207,8 @@ class ConversationManager:
             if mod_response is None:
                 print(f"Attempt number {i}: An error occurred while communicating with the moderator.")
             elif mod_response is not None:
+                moderator_message = Message(self.moderator.get_name(), mod_response)
+                self.save_moderator_response(moderator_message.to_dict(), "priority_assignment")
                 break
         if mod_response is None:
             return None
@@ -278,8 +298,10 @@ class ConversationManager:
         for i in range(0, 5):
             summarized_response = self.moderator.query_model()
             if summarized_response is None:
-                print("An error occurred while communicating with the moderator during the summarization of the input.")
+                print(f"Attempt {i}: An error occurred while communicating with the moderator during the summarization of the input.")
             elif summarized_response is not None:
+                moderator_message = Message(self.moderator.get_name(), summarized_response)
+                self.save_moderator_response(moderator_message.to_dict(), "summary")
                 self.conversation.set_history([]) #if the history is correctly summarized, the iteration's history will be deleted leaving space for the new one
                 return summarized_response
         return ""
