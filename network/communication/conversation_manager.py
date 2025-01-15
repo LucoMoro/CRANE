@@ -182,13 +182,16 @@ class ConversationManager:
            - Validates the conversation's integrity and iteration path.
            - Increments the iteration ID to track progress.
         """
+        mod_response = ""
         for i in range(0, 5): #todo: eventually let the user manually decide the range
             self.moderator.set_full_prompt(self.moderator.get_instructions(), input_text, self.moderator.get_context()) #todo delete here this setup
             mod_response = self.moderator.query_model()
             if mod_response is None:
-                print("An error occurred while communicating with the moderator.")
+                print(f"Attempt number {i}: An error occurred while communicating with the moderator.")
             elif mod_response is not None:
                 break
+        if mod_response is None:
+            return None
         first_reviewer = ""
 
         tmp_mod_response = "reviewer_2" #simulates the variable mod_response, which will only contain the name of the
@@ -198,7 +201,7 @@ class ConversationManager:
             if reviewer.get_name() == tmp_mod_response: #this if statement has to be executed only at the start of each iteration
                 reviewer_response = reviewer.query_model()
                 if reviewer_response is None:
-                    print("An error occurred while communicating with " + reviewer.get_name() + ".")
+                    print(f"An error occurred while trying to communicate with the prioritized agent '{reviewer.get_name()}'.")
                     reviewer_response = ""
                 reviewer.increment_iteration_messages()
                 message = Message(reviewer.get_name(), reviewer_response)
@@ -213,7 +216,7 @@ class ConversationManager:
                     if reviewer.get_iteration_messages() < 1: #todo: change the constant to 2 when a performing LLM will be used
                        reviewer_response = reviewer.query_model()
                        if reviewer_response is None:
-                           print("An error occurred.")
+                           print(f"An error occurred wile trying to communicate with {reviewer.get_name()}.")
                            reviewer_response = "" #the reviewers are noe non-blocking: if some user do not respond, the conversation will proceed
                        reviewer.increment_iteration_messages()
                        message = Message(reviewer.get_name(), reviewer_response)

@@ -114,26 +114,26 @@ class AgentBase:
                     #print(f"the instructions length of {self.name} is:" + str(len(instructions.split())))
                     return instructions
                 elif response.status_code == 503:
-                    print(f"Service unavailable. Retrying in {self.wait_time} seconds...")
+                    print(f"Service unavailable ({self.name}): Retrying in {self.wait_time} seconds...")
                 elif response.status_code == 400:
-                    print("Bad request: The server could not understand the request.")
+                    print(f"Bad request ({self.name}): The server could not understand the request.")
                 elif response.status_code == 401:
-                    print("Unauthorized: Check your API key or authentication method.")
+                    print(f"Unauthorized ({self.name}): Check your API key or authentication method.")
                 elif response.status_code == 403:
-                    print("Forbidden: You do not have permission to access this resource.")
+                    print(f"Forbidden ({self.name}): You do not have permission to access this resource.")
                 elif response.status_code == 404:
-                    print("Not found: The request resource could not be found.")
+                    print(f"Not found ({self.name}): The request resource could not be found.")
                 else:
-                    print(f"Error {response.status_code}: {response.text}")
+                    print(f"Error {response.status_code}({self.name}): {response.text}")
                     return None
             except requests.exceptions.Timeout:
-                print("Request timed out. Please try again later.")
+                print(f"Request timed out. Please {self.name} try again later.")
                 return None
             except requests.exceptions.ConnectionError:
-                print("Connection error occurred. Check your network connection.")
+                print(f"Connection error occurred. {self.name} check your network connection.")
                 return None
             except requests.exceptions.RequestException as e:
-                print(f"An error occurred: {e}")
+                print(f"An error occurred({self.name}): {e}")
                 return None
 
     def get_context(self) -> str:
