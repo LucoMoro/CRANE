@@ -214,7 +214,7 @@ class ConversationManager:
             return None
         first_reviewer = ""
 
-        tmp_mod_response = "reviewer_2" #simulates the variable mod_response, which will only contain the name of the
+        tmp_mod_response = "reviewer_3" #simulates the variable mod_response, which will only contain the name of the
                                         #model that will need to be asked first.
 
         for reviewer in self.reviewers:
@@ -245,6 +245,7 @@ class ConversationManager:
 
         self.save_model_responses(self.conversation.get_history())
         self.increment_iteration_id()
+        self.reset_iteration_messages()
 
     def simulate_conversation(self, input_text: str = None) -> None:
         self.ensure_conversation_path() #ensures that the conversation's folder path exists
@@ -253,6 +254,7 @@ class ConversationManager:
         self.simulate_iteration(input_text) #simulates the iteration
         self.check_stopping_condition() #checks if the stopping condition is reached
 
+        #for i in range (0, 2):
         while not self.stopping_condition:
             self.ensure_iteration_path() # ensures that the iteration's folder path exists
             summarized_history = self.summarize_iteration_history() #summarizes the previous iteration's history
@@ -315,3 +317,7 @@ class ConversationManager:
         """
         self.stopping_condition = True
         return True
+
+    def reset_iteration_messages(self) -> None:
+        for reviewer in self.reviewers:
+            reviewer.set_iteration_messages(0)

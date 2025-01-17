@@ -1,9 +1,13 @@
 import json
+from bisect import insort_right
 
 import requests
 from network.config import headers
 
 import re
+
+from scraping.gerrit_code_scraper import files_response
+
 
 class AgentBase:
     def __init__(self, file_path):
@@ -111,8 +115,12 @@ class AgentBase:
                     #print(f"the response length of {self.name} is:" + str(len(response.json()[0]["generated_text"].split())))
                     #print(response.json())
                     instructions = self.get_instructions_from_response(response)
-                    #print(f"the instructions length of {self.name} is:" + str(len(instructions.split())))
-                    return instructions
+                    #print(f"true instructions: {self.instructions}")
+                    #print(f"false instructions: {instructions}")
+                    filtered_result = self.delete_prompt_from_response(instructions)
+                    #print(f"filtered result: {filtered_result}")
+                    #print(f"the filtered_result length of {self.name} is:" + str(len(filtered_result.split())))
+                    return filtered_result
                 elif response.status_code == 503:
                     print(f"Service unavailable ({self.name}): Retrying in {self.wait_time} seconds...")
                 elif response.status_code == 400:
@@ -227,6 +235,31 @@ class AgentBase:
             else:
                 return None
 
+    def delete_prompt_from_response(self, instructions) -> str:
+        """
+        Removes the input prompt from the generated response provided by the LLM.
+
+        This function processes the response text returned by the LLM and removes
+        any portion of the response that matches the original input instructions.
+        The behavior differs based on the default provider:
+
+        Args:
+            instructions (str): The full response text returned by the LLM,
+            which may include both the input prompt and the generated output.
+
+        Returns:
+            str | None: The filtered response text with the input prompt removed.
+        """
+        if self.default_provider == "openai":
+            # todo: check which pattern is produced by the openai response and try to maintain only the output while excluding the input taken by the LLM
+            return instructions
+        elif self.default_provider == "huggingface":
+            result = instructions.replace(self.instructions, "")
+            return result
+
     def get_name(self) -> str:
         return self.name
+
+    def get_default_provider(self) -> str:
+        return self.default_provider
 
