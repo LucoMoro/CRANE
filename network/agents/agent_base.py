@@ -117,10 +117,10 @@ class AgentBase:
                     instructions = self.get_instructions_from_response(response)
                     #print(f"true instructions: {self.instructions}")
                     #print(f"false instructions: {instructions}")
-                    filtered_result = self.delete_prompt_from_response(instructions)
+                    filtered_response = self.delete_prompt_from_response(instructions)
                     #print(f"filtered result: {filtered_result}")
                     #print(f"the filtered_result length of {self.name} is:" + str(len(filtered_result.split())))
-                    return filtered_result
+                    return filtered_response
                 elif response.status_code == 503:
                     print(f"Service unavailable ({self.name}): Retrying in {self.wait_time} seconds...")
                 elif response.status_code == 400:

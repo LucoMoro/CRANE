@@ -6,18 +6,20 @@ from network.communication.message import Message
 from network.config import base_path
 
 class ConversationManager:
-    def __init__(self, conversation: Conversation ):
+    def __init__(self, conversation: Conversation):
+        #fundamental setup
         self.conversation = conversation
         self.moderator = self.conversation.get_moderator()
         self.reviewers = self.conversation.get_reviewers()
         self.feedback_agent = self.conversation.get_feedback_agent()
 
+        #handling files
         self.iteration_id = "0"
         self.conversation_id = "0"
-
         self.base_path = base_path
         self.conversation_manager_path = os.path.join(self.base_path, "conversation_id.json")
 
+        #settings
         self.stopping_condition = False
 
 
@@ -174,6 +176,17 @@ class ConversationManager:
         with open(moderator_file, "w") as output:
             json.dump(data, output, indent=4)
 
+    def save_feedback_agent_response(self, message, file_name: str) -> None:
+        full_path = os.path.join(self.base_path, f"conversation_{self.get_conversation_id()}/iteration_{self.get_iteration_id()}")
+        feedback_agent_file = os.path.join(full_path, f"{file_name}.json")
+        data = {
+            "conversation_id": self.get_conversation_id(),
+            "iteration_id": self.get_iteration_id(),
+            "response": [message]
+        }
+        with open(feedback_agent_file, "w") as output:
+            json.dump(data, output, indent=4)
+
     #todo: change every tmp_mod_response to mod_response when a performing LLM will be used
     def simulate_iteration(self, input_text: str = None) -> None:
         """
@@ -254,8 +267,8 @@ class ConversationManager:
         self.simulate_iteration(input_text) #simulates the iteration
         self.check_stopping_condition() #checks if the stopping condition is reached
 
-        #for i in range (0, 2):
-        while not self.stopping_condition:
+        for i in range (0, 2):
+        #while not self.stopping_condition:
             self.ensure_iteration_path() # ensures that the iteration's folder path exists
             summarized_history = self.summarize_iteration_history() #summarizes the previous iteration's history
             current_input_text = self.fetch_model_feedback(summarized_history) #provides the summarized history as a feedback to the model
@@ -281,6 +294,8 @@ class ConversationManager:
             if feedback_response is None:
                 print("An error occurred while communicating with the feedback agent.")
             elif feedback_response is not None:
+                feedback_message = Message(self.feedback_agent.get_name(), feedback_response)
+                self.save_feedback_agent_response(feedback_message.to_dict(), "change")
                 return feedback_response
         return ""
 
