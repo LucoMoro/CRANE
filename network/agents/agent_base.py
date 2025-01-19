@@ -6,6 +6,7 @@ from network.config import headers
 
 import re
 
+from network.utils.error_logger import ErrorLogger
 from scraping.gerrit_code_scraper import files_response
 
 
@@ -43,11 +44,13 @@ class AgentBase:
             self.specialization = self.utils.get("specialization", {})
             self.name = self.utils.get("name", {})
 
+            self.error_logger = ErrorLogger()
+
         except FileNotFoundError:
-            print(f"Error: File {file_path} not found")
+            self.error_logger.add_error(f"Error: File {file_path} not found")
 
         except json.JSONDecodeError:
-            print("Error while reading the JSON file")
+            self.error_logger.add_error("Error while reading the JSON file")
 
         self.request_retries = 2
         self.wait_time = 2
@@ -122,23 +125,23 @@ class AgentBase:
                     #print(f"the filtered_result length of {self.name} is:" + str(len(filtered_result.split())))
                     return filtered_response
                 elif response.status_code == 503:
-                    print(f"Service unavailable ({self.name}): Retrying in {self.wait_time} seconds...")
+                    self.error_logger.add_error(f"Service unavailable ({self.name}): Retrying in {self.wait_time} seconds...")
                 elif response.status_code == 400:
-                    print(f"Bad request ({self.name}): The server could not understand the request.")
+                    self.error_logger.add_error(f"Bad request ({self.name}): The server could not understand the request.")
                 elif response.status_code == 401:
-                    print(f"Unauthorized ({self.name}): Check your API key or authentication method.")
+                    self.error_logger.add_error(f"Unauthorized ({self.name}): Check your API key or authentication method.")
                 elif response.status_code == 403:
-                    print(f"Forbidden ({self.name}): You do not have permission to access this resource.")
+                    self.error_logger.add_error(f"Forbidden ({self.name}): You do not have permission to access this resource.")
                 elif response.status_code == 404:
-                    print(f"Not found ({self.name}): The request resource could not be found.")
+                    self.error_logger.add_error(f"Not found ({self.name}): The request resource could not be found.")
                 else:
-                    print(f"Error {response.status_code}({self.name}): {response.text}")
+                    self.error_logger.add_error(f"Error {response.status_code}({self.name}): {response.text}")
                     return None
             except requests.exceptions.Timeout:
-                print(f"Request timed out. Please {self.name} try again later.")
+                self.error_logger.add_error(f"Request timed out. Please {self.name} try again later.")
                 return None
             except requests.exceptions.ConnectionError:
-                print(f"Connection error occurred. {self.name} check your network connection.")
+                self.error_logger.add_error(f"Connection error occurred. {self.name} check your network connection.")
                 return None
             except requests.exceptions.RequestException as e:
                 print(f"An error occurred({self.name}): {e}")
@@ -262,4 +265,10 @@ class AgentBase:
 
     def get_default_provider(self) -> str:
         return self.default_provider
+
+    def get_error_logger(self) -> list[str]:
+        return self.error_logger.get_errors()
+
+    def set_error_logger(self, error_logger: list[str]) -> None:
+        self.error_logger.set_errors(error_logger)
 

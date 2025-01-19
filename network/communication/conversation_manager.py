@@ -1,9 +1,12 @@
 import os
 import json
 
+from network.agents.agent_base import AgentBase
 from network.communication.conversation import Conversation
 from network.communication.message import Message
 from network.config import base_path
+from network.utils.error_logger import ErrorLogger
+
 
 class ConversationManager:
     def __init__(self, conversation: Conversation, max_retries: int = None):
@@ -19,12 +22,13 @@ class ConversationManager:
         self.base_path = base_path
         self.conversation_manager_path = os.path.join(self.base_path, "conversation_id.json")
 
-        #settings
+        #conversation's settings
         self.stopping_condition = False
         if max_retries is None:
             self.max_retries = 5
         else:
             self.max_retries = max_retries
+        self.error_logger = ErrorLogger()
 
 
     def get_max_retries(self) -> int:
@@ -197,6 +201,9 @@ class ConversationManager:
         with open(feedback_agent_file, "w") as output:
             json.dump(data, output, indent=4)
 
+    def save_errors(self) -> None:
+        print(self.error_logger.get_errors())
+
     #todo: change every tmp_mod_response to mod_response when a performing LLM will be used
     def simulate_iteration(self, input_text: str = None) -> None:
         """
@@ -228,7 +235,7 @@ class ConversationManager:
             self.moderator.set_full_prompt(self.moderator.get_instructions(), input_text, self.moderator.get_context()) #todo delete here this setup
             mod_response = self.moderator.query_model()
             if mod_response is None:
-                print(f"Attempt number {i}: An error occurred while communicating with the moderator.")
+                self.error_logger.add_error(f"Attempt number {i}: An error occurred while communicating with the moderator.")
             elif mod_response is not None:
                 moderator_message = Message(self.moderator.get_name(), mod_response)
                 self.save_moderator_response(moderator_message.to_dict(), "priority_assignment")
@@ -244,7 +251,7 @@ class ConversationManager:
             if reviewer.get_name() == tmp_mod_response: #this if statement has to be executed only at the start of each iteration
                 reviewer_response = reviewer.query_model()
                 if reviewer_response is None:
-                    print(f"An error occurred while trying to communicate with the prioritized agent '{reviewer.get_name()}'.")
+                    self.error_logger.add_error(f"An error occurred while trying to communicate with the prioritized agent '{reviewer.get_name()}'.")
                     reviewer_response = ""
                 reviewer.increment_iteration_messages()
                 message = Message(reviewer.get_name(), reviewer_response)
@@ -259,7 +266,8 @@ class ConversationManager:
                     if reviewer.get_iteration_messages() < 1: #todo: change the constant to 2 when a performing LLM will be used
                        reviewer_response = reviewer.query_model()
                        if reviewer_response is None:
-                           print(f"An error occurred wile trying to communicate with {reviewer.get_name()}.")
+                           self.error_logger.add_error(f"An error occurred wile trying to communicate with {reviewer.get_name()}.")
+                           self.from_agent_get_errors(reviewer)
                            reviewer_response = "" #the reviewers are noe non-blocking: if some user do not respond, the conversation will proceed
                        reviewer.increment_iteration_messages()
                        message = Message(reviewer.get_name(), reviewer_response)
@@ -276,15 +284,17 @@ class ConversationManager:
         self.ensure_iteration_path() #ensures that the iteration's folder path exists
         self.simulate_iteration(input_text) #simulates the iteration
         self.check_stopping_condition() #checks if the stopping condition is reached
+        self.save_errors()
 
-        #for i in range (0, 2):
-        while not self.stopping_condition:
+        for i in range (0, 2):
+        #while not self.stopping_condition:
             #print(f"Entering in the iteration number {self.get_iteration_id()}")
             self.ensure_iteration_path() # ensures that the iteration's folder path exists
             summarized_history = self.summarize_iteration_history() #summarizes the previous iteration's history
             current_input_text = self.fetch_model_feedback(summarized_history) #provides the summarized history as a feedback to the model
             self.simulate_iteration(current_input_text)  # simulates the iteration
             self.check_stopping_condition()  # checks if the stopping condition is reached
+            self.save_errors()
 
         self.increment_conversation_id()
         self.reset_iteration()
@@ -303,7 +313,7 @@ class ConversationManager:
         for i in range(0, self.max_retries):
             feedback_response = self.feedback_agent.query_model()
             if feedback_response is None:
-                print("An error occurred while communicating with the feedback agent.")
+                self.error_logger.add_error("An error occurred while communicating with the feedback agent.")
             elif feedback_response is not None:
                 feedback_message = Message(self.feedback_agent.get_name(), feedback_response)
                 self.save_feedback_agent_response(feedback_message.to_dict(), "change")
@@ -326,7 +336,7 @@ class ConversationManager:
         for i in range(0, self.max_retries):
             summarized_response = self.moderator.query_model()
             if summarized_response is None:
-                print(f"Attempt {i}: An error occurred while communicating with the moderator during the summarization of the input.")
+                self.error_logger.add_error(f"Attempt {i}: An error occurred while communicating with the moderator during the summarization of the input.")
             elif summarized_response is not None:
                 moderator_message = Message(self.moderator.get_name(), summarized_response)
                 self.save_moderator_response(moderator_message.to_dict(), "summary")
@@ -347,3 +357,8 @@ class ConversationManager:
     def reset_iteration_messages(self) -> None:
         for reviewer in self.reviewers:
             reviewer.set_iteration_messages(0)
+
+    def from_agent_get_errors(self, agent: AgentBase) -> None:
+        reviewer_errors = agent.get_error_logger()
+        for error in reviewer_errors:
+            self.error_logger.add_error(error)
