@@ -6,7 +6,7 @@ from network.communication.message import Message
 from network.config import base_path
 
 class ConversationManager:
-    def __init__(self, conversation: Conversation):
+    def __init__(self, conversation: Conversation, max_retries: int = None):
         #fundamental setup
         self.conversation = conversation
         self.moderator = self.conversation.get_moderator()
@@ -21,7 +21,17 @@ class ConversationManager:
 
         #settings
         self.stopping_condition = False
+        if max_retries is None:
+            self.max_retries = 5
+        else:
+            self.max_retries = max_retries
 
+
+    def get_max_retries(self) -> int:
+        return self.max_retries
+
+    def set_max_retries(self, new_max_retries) -> None:
+        self.max_retries = new_max_retries
 
     def get_conversation_id(self) -> str:
         """
@@ -214,7 +224,7 @@ class ConversationManager:
            - Increments the iteration ID to track progress.
         """
         mod_response = ""
-        for i in range(0, 5): #todo: eventually let the user manually decide the range
+        for i in range(0, self.max_retries):
             self.moderator.set_full_prompt(self.moderator.get_instructions(), input_text, self.moderator.get_context()) #todo delete here this setup
             mod_response = self.moderator.query_model()
             if mod_response is None:
@@ -267,8 +277,9 @@ class ConversationManager:
         self.simulate_iteration(input_text) #simulates the iteration
         self.check_stopping_condition() #checks if the stopping condition is reached
 
-        for i in range (0, 2):
-        #while not self.stopping_condition:
+        #for i in range (0, 2):
+        while not self.stopping_condition:
+            #print(f"Entering in the iteration number {self.get_iteration_id()}")
             self.ensure_iteration_path() # ensures that the iteration's folder path exists
             summarized_history = self.summarize_iteration_history() #summarizes the previous iteration's history
             current_input_text = self.fetch_model_feedback(summarized_history) #provides the summarized history as a feedback to the model
@@ -289,7 +300,7 @@ class ConversationManager:
             str: The feedback response from the model.
         """
         self.feedback_agent.set_full_prompt(self.feedback_agent.get_instructions(), summarized_history)
-        for i in range(0, 5):
+        for i in range(0, self.max_retries):
             feedback_response = self.feedback_agent.query_model()
             if feedback_response is None:
                 print("An error occurred while communicating with the feedback agent.")
@@ -312,7 +323,7 @@ class ConversationManager:
                  Returns an empty string if no valid response is obtained.
         """
         self.moderator.set_full_prompt(self.moderator.get_summarization_prompt(), self.conversation.get_history())
-        for i in range(0, 5):
+        for i in range(0, self.max_retries):
             summarized_response = self.moderator.query_model()
             if summarized_response is None:
                 print(f"Attempt {i}: An error occurred while communicating with the moderator during the summarization of the input.")
