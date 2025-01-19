@@ -202,7 +202,7 @@ class ConversationManager:
             json.dump(data, output, indent=4)
 
     def save_errors(self) -> None:
-        print(self.error_logger.get_errors())
+        print(self.error_logger.from_array_to_text(f"iteration n.{self.iteration_id}"))
 
     #todo: change every tmp_mod_response to mod_response when a performing LLM will be used
     def simulate_iteration(self, input_text: str = None) -> None:
@@ -359,6 +359,14 @@ class ConversationManager:
             reviewer.set_iteration_messages(0)
 
     def from_agent_get_errors(self, agent: AgentBase) -> None:
+        """
+        Collects error logs from a given agent and adds them to the central error logger.
+
+        Returns:
+            None: This method modifies the internal error logger by adding errors retrieved
+                  from the provided agent.
+
+        """
         reviewer_errors = agent.get_error_logger()
         for error in reviewer_errors:
             self.error_logger.add_error(error)
