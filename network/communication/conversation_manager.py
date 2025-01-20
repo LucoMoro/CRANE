@@ -6,6 +6,8 @@ from network.communication.conversation import Conversation
 from network.communication.message import Message
 from network.config import base_path
 from network.utils.error_logger import ErrorLogger
+from network.utils.feedback_exception import FeedbackException
+from network.utils.summarization_exception import SummarizationException
 
 
 class ConversationManager:
@@ -323,9 +325,9 @@ class ConversationManager:
                 feedback_message = Message(self.feedback_agent.get_name(), feedback_response)
                 self.save_feedback_agent_response(feedback_message.to_dict(), "change")
                 return feedback_response
-        return ""
+        raise FeedbackException(f"The feedback agent failed to provide a valid response after {self.max_retries} attempts.")
 
-    def summarize_iteration_history(self) -> str:
+    def summarize_iteration_history(self) -> str | None:
         """
         Summarizes the input history using the moderator.
 
@@ -337,6 +339,7 @@ class ConversationManager:
             str: The summarized response from the moderator model.
                  Returns an empty string if no valid response is obtained.
         """
+        summarized_response = ""
         self.moderator.set_full_prompt(self.moderator.get_summarization_prompt(), self.conversation.get_history())
         for i in range(0, self.max_retries):
             summarized_response = self.moderator.query_model()
@@ -347,7 +350,7 @@ class ConversationManager:
                 self.save_moderator_response(moderator_message.to_dict(), "summary")
                 self.conversation.set_history([]) #if the history is correctly summarized, the iteration's history will be deleted leaving space for the new one
                 return summarized_response
-        return ""
+        raise SummarizationException(f"The moderator failed to provide a valid response after {self.max_retries} attempts.")
 
     def check_stopping_condition(self) -> bool:
         """

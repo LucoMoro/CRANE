@@ -144,7 +144,7 @@ class AgentBase:
                 self.error_logger.add_error(f"Connection error occurred. {self.name} check your network connection.")
                 return None
             except requests.exceptions.RequestException as e:
-                print(f"An error occurred({self.name}): {e}")
+                self.error_logger.add_error(f"An error occurred({self.name}): {e}")
                 return None
 
     def get_context(self) -> str:
