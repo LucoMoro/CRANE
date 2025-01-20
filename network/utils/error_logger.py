@@ -29,5 +29,8 @@ class ErrorLogger:
         for item in self.errors:
             errors = errors + item + '\n'
 
-        text = f"""{context_text}:\n {errors}"""
+        text = f"""{context_text}:\n{errors}"""
         return text
+
+    def reset_errors(self) -> None:
+        self.errors = []

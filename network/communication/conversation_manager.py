@@ -202,7 +202,12 @@ class ConversationManager:
             json.dump(data, output, indent=4)
 
     def save_errors(self) -> None:
-        print(self.error_logger.from_array_to_text(f"iteration n.{self.iteration_id}"))
+        full_path = os.path.join(self.base_path, f"conversation_{self.conversation_id}/iteration_{self.iteration_id}")
+        errors_file = os.path.join(full_path, "errors.txt")
+
+        with open (errors_file, "w") as output:
+            output.write(self.error_logger.from_array_to_text(f"iteration n.{self.iteration_id}"))
+        self.error_logger.reset_errors()
 
     #todo: change every tmp_mod_response to mod_response when a performing LLM will be used
     def simulate_iteration(self, input_text: str = None) -> None:
