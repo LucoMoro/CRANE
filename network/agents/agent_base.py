@@ -90,22 +90,10 @@ class AgentBase:
             try:
                 if self.default_provider == "openai":
                     # OpenAI requires a structured 'messages' format
-                    payload = {
-                        "model": self.model,
-                        "messages": [
-                            {"role": "system", "content": self.context},
-                            {"role": "user", "content": self.instructions}
-                        ],
-                        "max_tokens": int(self.max_tokens),
-                    }
+                    payload = self.get_openai_payload()
                 elif self.default_provider == "huggingface":
                     # Hugging Face uses a single 'inputs' string
-                    payload = {
-                        "inputs": f"Context: {self.context}\nInstructions: {self.instructions}",
-                        "parameters": {
-                            "max_new_tokens": int(self.max_tokens),  # Add token limit for Hugging Face
-                        }
-                    }
+                    payload = self.get_huggingface_payload()
                 else:
                     raise ValueError("Unsupported provider")
 
@@ -212,7 +200,6 @@ class AgentBase:
         if context is not None:
             self.set_context(context)
 
-    #todo change how this method is implemented
     def get_instructions_from_response(self, response) -> str | None:
         """
         Extracts the generated instructions from the model's response based on the default provider.
@@ -271,4 +258,54 @@ class AgentBase:
 
     def set_error_logger(self, error_logger: list[str]) -> None:
         self.error_logger.set_errors(error_logger)
+
+    def get_huggingface_payload(self) -> dict:
+        """
+        Constructs the payload for a Hugging Face API request.
+
+        This method creates a dictionary payload formatted for Hugging Face's
+        text generation models. The payload includes the context, user instructions,
+        and maximum token limits.
+
+        Returns:
+            dict: A dictionary containing the following keys:
+                - "inputs" (str): A string combining the context and instructions,
+                  formatted as "Context: {self.context}\nInstructions: {self.instructions}".
+                - "parameters" (dict): A dictionary containing:
+                    - "max_new_tokens" (int): The maximum number of tokens to generate.
+        """
+        payload = {
+            "inputs": f"Context: {self.context}\nInstructions: {self.instructions}",
+            "parameters": {
+                "max_new_tokens": int(self.max_tokens),  # Add token limit for Hugging Face
+            }
+        }
+        return payload
+
+    def get_openai_payload(self) -> dict:
+        """
+            Constructs the payload for an OpenAI API request.
+
+            This method creates a dictionary payload formatted for OpenAI's
+            chat-based language models (e.g., GPT). The payload includes the
+            model name, context, user instructions, and token limits.
+
+            Returns:
+                dict: A dictionary containing the following keys:
+                    - "model" (str): The name of the OpenAI model to be used.
+                    - "messages" (list): A list of dictionaries representing the conversation,
+                      with each dictionary containing:
+                        - "role" (str): The role in the conversation ("system" or "user").
+                        - "content" (str): The corresponding text content (context or instructions).
+                    - "max_tokens" (int): The maximum number of tokens to generate.
+            """
+        payload = {
+            "model": self.model,
+            "messages": [
+                {"role": "system", "content": self.context},
+                {"role": "user", "content": self.instructions}
+            ],
+            "max_tokens": int(self.max_tokens),
+        }
+        return payload
 
