@@ -295,7 +295,7 @@ class ConversationManager:
 
         for i in range (0, 2):
         #while not self.stopping_condition:
-            #print(f"Entering in the iteration number {self.get_iteration_id()}")
+            print(f"Entering in the iteration number {self.get_iteration_id()}")
             self.ensure_iteration_path() # ensures that the iteration's folder path exists
             summarized_history = self.summarize_iteration_history() #summarizes the previous iteration's history
             current_input_text = self.fetch_model_feedback(summarized_history) #provides the summarized history as a feedback to the model
@@ -325,6 +325,7 @@ class ConversationManager:
                 feedback_message = Message(self.feedback_agent.get_name(), feedback_response)
                 self.save_feedback_agent_response(feedback_message.to_dict(), "change")
                 return feedback_response
+        self.error_logger.add_error(f"The feedback agent failed to provide a valid response after {self.max_retries} attempts.")
         raise FeedbackException(f"The feedback agent failed to provide a valid response after {self.max_retries} attempts.")
 
     def summarize_iteration_history(self) -> str | None:
@@ -350,6 +351,7 @@ class ConversationManager:
                 self.save_moderator_response(moderator_message.to_dict(), "summary")
                 self.conversation.set_history([]) #if the history is correctly summarized, the iteration's history will be deleted leaving space for the new one
                 return summarized_response
+        self.error_logger.add_error(f"The moderator failed to provide a valid response after {self.max_retries} attempts.")
         raise SummarizationException(f"The moderator failed to provide a valid response after {self.max_retries} attempts.")
 
     def check_stopping_condition(self) -> bool:
