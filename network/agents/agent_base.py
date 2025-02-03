@@ -1,13 +1,12 @@
 import json
-from bisect import insort_right
 
 import requests
-from network.config import headers
+from network.config import huggingface_headers, openai_headers
+
 
 import re
 
 from network.utils.error_logger import ErrorLogger
-from scraping.gerrit_code_scraper import files_response
 
 
 class AgentBase:
@@ -91,9 +90,11 @@ class AgentBase:
                 if self.default_provider == "openai":
                     # OpenAI requires a structured 'messages' format
                     payload = self.get_openai_payload()
+                    headers = openai_headers
                 elif self.default_provider == "huggingface":
                     # Hugging Face uses a single 'inputs' string
                     payload = self.get_huggingface_payload()
+                    headers = huggingface_headers
                 else:
                     raise ValueError("Unsupported provider")
 
@@ -103,14 +104,18 @@ class AgentBase:
                 # Send the request
                 response = requests.post(self.endpoint, headers=headers, json=payload, timeout=self.timeout)
                 if response.status_code == 200: #based on the provider, the response will be cleared in order to maintain only the output of the agent
-                    #print(f"the response length of {self.name} is:" + str(len(response.json()[0]["generated_text"].split())))
-                    #print(response.json())
-                    instructions = self.get_instructions_from_response(response)
-                    #print(f"true instructions: {self.instructions}")
-                    #print(f"false instructions: {instructions}")
-                    filtered_response = self.delete_prompt_from_response(instructions)
-                    #print(f"filtered result: {filtered_result}")
-                    #print(f"the filtered_result length of {self.name} is:" + str(len(filtered_result.split())))
+                    filtered_response = ""
+                    if self.default_provider == "openai":
+                        filtered_response = response.json()["choices"][0]["message"]["content"]
+                    if self.default_provider == "huggingface":
+                        # print(f"the response length of {self.name} is:" + str(len(response.json()[0]["generated_text"].split())))
+                        # print(response.json())
+                        instructions = self.get_instructions_from_response(response)
+                        #print(f"true instructions: {self.instructions}")
+                        #print(f"false instructions: {instructions}")
+                        filtered_response = self.delete_prompt_from_response(instructions)
+                        #print(f"filtered result: {filtered_result}")
+                        #print(f"the filtered_result length of {self.name} is:" + str(len(filtered_result.split())))
                     return filtered_response
                 elif response.status_code == 503:
                     self.error_logger.add_error(f"Service unavailable ({self.name}): Retrying in {self.wait_time} seconds...")

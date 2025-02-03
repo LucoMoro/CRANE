@@ -2,7 +2,7 @@
   "name": "Reviewer 1",
   "api_settings": {
     "openai": {
-      "model": "",
+      "model": "gpt-3.5-turbo",
       "endpoint": "https://api.openai.com/v1/chat/completions",
       "api_key": "",
       "max_tokens": 100
@@ -13,11 +13,11 @@
       "api_key": "",
       "max_new_tokens": 50
     },
-    "default_provider": "huggingface"
+    "default_provider": "openai"
   },
   "system_prompt": {
     "context": "Sei un esperto di revisione del codice.",
-    "instructions": "i am so strange because..."
+    "instructions": "What is the capital of France? Is it London?"
   },
   "utils": {
     "role": "moderator",
