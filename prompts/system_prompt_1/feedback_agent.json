@@ -8,12 +8,12 @@
       "max_tokens": 100
     },
     "huggingface": {
-      "model": "distilgpt2",
-      "endpoint": "https://api-inference.huggingface.co/models/distilgpt2",
+      "model": "gpt-neo-2.7B",
+      "endpoint": "https://api-inference.huggingface.co/models/EleutherAI/gpt-neo-2.7B",
       "api_key": "",
       "max_new_tokens": 50
     },
-    "default_provider": "openai"
+    "default_provider": "huggingface"
   },
   "system_prompt": {
     "context": "Sei un esperto di revisione del codice.",

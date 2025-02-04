@@ -87,49 +87,14 @@ class AgentBase:
         """
         for i in range(0, self.request_retries):
             try:
-                if self.default_provider == "openai":
-                    # OpenAI requires a structured 'messages' format
-                    payload = self.get_openai_payload()
-                    headers = openai_headers
-                elif self.default_provider == "huggingface":
-                    # Hugging Face uses a single 'inputs' string
-                    payload = self.get_huggingface_payload()
-                    headers = huggingface_headers
-                else:
-                    raise ValueError("Unsupported provider")
-
-                #tot_length = len(self.context.split()) + len(self.instructions.split())
-                #print(f"tot_length is {tot_length}")
-
-                # Send the request
+                payload, headers = self.prepare_payload()
                 response = requests.post(self.endpoint, headers=headers, json=payload, timeout=self.timeout)
-                if response.status_code == 200: #based on the provider, the response will be cleared in order to maintain only the output of the agent
-                    filtered_response = ""
-                    if self.default_provider == "openai":
-                        filtered_response = response.json()["choices"][0]["message"]["content"]
-                    if self.default_provider == "huggingface":
-                        # print(f"the response length of {self.name} is:" + str(len(response.json()[0]["generated_text"].split())))
-                        # print(response.json())
-                        instructions = self.get_instructions_from_response(response)
-                        #print(f"true instructions: {self.instructions}")
-                        #print(f"false instructions: {instructions}")
-                        filtered_response = self.delete_prompt_from_response(instructions)
-                        #print(f"filtered result: {filtered_result}")
-                        #print(f"the filtered_result length of {self.name} is:" + str(len(filtered_result.split())))
-                    return filtered_response
-                elif response.status_code == 503:
-                    self.error_logger.add_error(f"Service unavailable ({self.name}): Retrying in {self.wait_time} seconds...")
-                elif response.status_code == 400:
-                    self.error_logger.add_error(f"Bad request ({self.name}): The server could not understand the request.")
-                elif response.status_code == 401:
-                    self.error_logger.add_error(f"Unauthorized ({self.name}): Check your API key or authentication method.")
-                elif response.status_code == 403:
-                    self.error_logger.add_error(f"Forbidden ({self.name}): You do not have permission to access this resource.")
-                elif response.status_code == 404:
-                    self.error_logger.add_error(f"Not found ({self.name}): The request resource could not be found.")
+
+                if response.status_code == 200:
+                    return self.clear_response(response) #based on the provider, the response will be cleared in order to maintain only the output of the agent
                 else:
-                    self.error_logger.add_error(f"Error {response.status_code}({self.name}): {response.text}")
-                    return None
+                    self.handle_response_error(response)
+
             except requests.exceptions.Timeout:
                 self.error_logger.add_error(f"Request timed out. Please {self.name} try again later.")
                 return None
@@ -314,3 +279,45 @@ class AgentBase:
         }
         return payload
 
+    def prepare_payload(self):
+        if self.default_provider == "openai":
+            payload = self.get_openai_payload()
+            headers = openai_headers
+            return payload, headers
+        elif self.default_provider == "huggingface":
+            payload = self.get_huggingface_payload()
+            headers = huggingface_headers
+            return payload, headers
+        else:
+            raise ValueError("Unsupported provider")
+
+
+    def clear_response(self, response) -> str:
+        filtered_response = ""
+        if self.default_provider == "openai":
+            filtered_response = response.json()["choices"][0]["message"]["content"]
+        if self.default_provider == "huggingface":
+            # print(f"the response length of {self.name} is:" + str(len(response.json()[0]["generated_text"].split())))
+            # print(response.json())
+            instructions = self.get_instructions_from_response(response)
+            # print(f"true instructions: {self.instructions}")
+            # print(f"false instructions: {instructions}")
+            filtered_response = self.delete_prompt_from_response(instructions)
+            # print(f"filtered result: {filtered_result}")
+            # print(f"the filtered_result length of {self.name} is:" + str(len(filtered_result.split())))
+        return filtered_response
+
+    def handle_response_error(self, response) -> None:
+        if response.status_code == 503:
+            self.error_logger.add_error(f"Service unavailable ({self.name}): Retrying in {self.wait_time} seconds...")
+        elif response.status_code == 400:
+            self.error_logger.add_error(f"Bad request ({self.name}): The server could not understand the request.")
+        elif response.status_code == 401:
+            self.error_logger.add_error(f"Unauthorized ({self.name}): Check your API key or authentication method.")
+        elif response.status_code == 403:
+            self.error_logger.add_error(f"Forbidden ({self.name}): You do not have permission to access this resource.")
+        elif response.status_code == 404:
+            self.error_logger.add_error(f"Not found ({self.name}): The request resource could not be found.")
+        else:
+            self.error_logger.add_error(f"Error {response.status_code}({self.name}): {response.text}")
+        return None
