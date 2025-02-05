@@ -325,6 +325,7 @@ class ConversationManager:
                 feedback_message = Message(self.feedback_agent.get_name(), feedback_response)
                 self.save_feedback_agent_response(feedback_message.to_dict(), "change")
                 return feedback_response
+        self.reset_iteration()
         self.error_logger.add_error(f"The feedback agent failed to provide a valid response after {self.max_retries} attempts.")
         raise FeedbackException(f"The feedback agent failed to provide a valid response after {self.max_retries} attempts.")
 
@@ -351,6 +352,7 @@ class ConversationManager:
                 self.save_moderator_response(moderator_message.to_dict(), "summary")
                 self.conversation.set_history([]) #if the history is correctly summarized, the iteration's history will be deleted leaving space for the new one
                 return summarized_response
+        self.reset_iteration()
         self.error_logger.add_error(f"The moderator failed to provide a valid response after {self.max_retries} attempts.")
         raise SummarizationException(f"The moderator failed to provide a valid response after {self.max_retries} attempts.")
 
