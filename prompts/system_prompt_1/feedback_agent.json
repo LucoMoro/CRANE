@@ -13,11 +13,11 @@
       "api_key": "",
       "max_new_tokens": 50
     },
-    "default_provider": "huggingface"
+    "default_provider": "openai"
   },
   "system_prompt": {
     "context": "Sei un esperto di revisione del codice.",
-    "instructions": "This file describes a personas professional"
+    "instructions": "I am trying to print in C the message 'Hello world' but it does not work. The code is prinsf('Hello World'). Which is the problem?"
   },
   "utils": {
     "role": "external agent",

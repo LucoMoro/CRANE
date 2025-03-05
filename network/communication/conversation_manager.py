@@ -211,7 +211,6 @@ class ConversationManager:
             output.write(self.error_logger.from_array_to_text(f"iteration n.{self.iteration_id}"))
         self.error_logger.reset_errors()
 
-    #todo: change every tmp_mod_response to mod_response when a performing LLM will be used
     def simulate_iteration(self, input_text: str = None) -> None:
         """
         Simulates an iteration of a multi-model review and response process.
@@ -238,69 +237,37 @@ class ConversationManager:
            - Increments the iteration ID to track progress.
         """
 
-        mod_response, first_reviewer, tmp_mod_response = self.moderator_initialization(input_text)
-
-        first_reviewer = self.initial_review_selection(tmp_mod_response)
-
-        self.subsequent_rounds(first_reviewer)
+        self.initial_review_selection(input_text)
+        self.subsequent_rounds()
 
         self.save_model_responses(self.conversation.get_history())
         self.increment_iteration_id()
         self.reset_iteration_messages()
 
-
-    def moderator_initialization (self, input_text: str = None):
-        mod_response = ""
-        for i in range(0, self.max_retries):
-            self.moderator.set_full_prompt(self.moderator.get_instructions(), input_text, self.moderator.get_context()) #todo delete here this setup
-            mod_response = self.moderator.query_model()
-            if mod_response is None:
-                self.error_logger.add_error(f"Attempt number {i}: An error occurred while communicating with the moderator.")
-            elif mod_response is not None:
-                moderator_message = Message(self.moderator.get_name(), mod_response)
-                self.save_moderator_response(moderator_message.to_dict(), "priority_assignment")
-                break
-        if mod_response is None:
-            return None
-        first_reviewer = ""
-
-        tmp_mod_response = "reviewer_4" #simulates the variable mod_response, which will only contain the name of the
-                                        #model that will need to be asked first.
-
-        return mod_response, first_reviewer, tmp_mod_response
-
-
-    def initial_review_selection(self, tmp_mod_response):
-        first_reviewer = ""
+    def initial_review_selection(self, input_text):
         for reviewer in self.reviewers:
-            if reviewer.get_name() == tmp_mod_response: #this if statement has to be executed only at the start of each iteration
+            print(f"Sending request to {reviewer.get_name()} with data: {reviewer.get_instructions()}")
+            for i in range(0, 2):
                 reviewer_response = reviewer.query_model()
                 if reviewer_response is None:
-                    self.error_logger.add_error(f"An error occurred while trying to communicate with the prioritized agent '{reviewer.get_name()}'.")
-                    reviewer_response = ""
-                reviewer.increment_iteration_messages()
-                message = Message(reviewer.get_name(), reviewer_response)
-                self.conversation.add_message(message)
-                first_reviewer = reviewer.get_name()
-                tmp_mod_response = "" #this ensures that once the model has been called the first time, it will lose his priority
-        return first_reviewer
+                    self.error_logger.add_error("An error occurred while communicating with the feedback agent.")
+                elif reviewer_response is not None:
+                    message = Message(reviewer.get_name(), reviewer_response)
+                    self.conversation.add_message(message)
 
-    def subsequent_rounds(self, first_reviewer) -> None:
+    def subsequent_rounds(self) -> None:
         for i in range(1): #todo: change the constant to 2 when a performing LLM will be used
             for reviewer in self.reviewers:
                 reviewer.set_full_prompt(reviewer.get_instructions(), self.conversation.get_history())
-                if reviewer.get_name() != first_reviewer:
-                    if reviewer.get_iteration_messages() < 1: #todo: change the constant to 2 when a performing LLM will be used
-                       reviewer_response = reviewer.query_model()
-                       if reviewer_response is None:
-                           self.error_logger.add_error(f"An error occurred wile trying to communicate with {reviewer.get_name()}.")
-                           self.from_agent_get_errors(reviewer)
-                           reviewer_response = "" #the reviewers are noe non-blocking: if some user do not respond, the conversation will proceed
-                       reviewer.increment_iteration_messages()
-                       message = Message(reviewer.get_name(), reviewer_response)
-                       self.conversation.add_message(message)
-                    first_reviewer = "" #this ensures that once the other models have also responded, the first model will be able to respond too again
-
+                if reviewer.get_iteration_messages() < 1: #todo: change the constant to 2 when a performing LLM will be used
+                    reviewer_response = reviewer.query_model()
+                    if reviewer_response is None:
+                        self.error_logger.add_error(f"An error occurred wile trying to communicate with {reviewer.get_name()}.")
+                        self.from_agent_get_errors(reviewer)
+                        reviewer_response = "" #the reviewers are non-blocking: if some user do not respond, the conversation will proceed
+                    reviewer.increment_iteration_messages()
+                    message = Message(reviewer.get_name(), reviewer_response)
+                    self.conversation.add_message(message)
 
     def simulate_conversation(self, input_text: str = None) -> None:
         self.ensure_conversation_path() #ensures that the conversation's folder path exists
@@ -310,7 +277,7 @@ class ConversationManager:
         self.check_stopping_condition() #checks if the stopping condition is reached
         self.save_errors()
 
-        for i in range (0, 2):
+        for i in range (0, 1): #todo change in more rounds
         #while not self.stopping_condition:
             print(f"Entering in the iteration number {self.get_iteration_id()}")
             self.ensure_iteration_path() # ensures that the iteration's folder path exists

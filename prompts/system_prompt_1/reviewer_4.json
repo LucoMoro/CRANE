@@ -2,13 +2,13 @@
   "name": "Reviewer 1",
   "api_settings": {
     "openai": {
-      "model": "",
+      "model": "gpt-4o-mini",
       "endpoint": "https://api.openai.com/v1/chat/completions",
       "api_key": "",
       "max_tokens": 100
     },
     "huggingface": {
-      "model": "",
+      "model": "distilgpt2",
       "endpoint": "https://api-inference.huggingface.co/models/EleutherAI/gpt-neo-2.7B",
       "api_key": "",
       "max_new_tokens": 50
@@ -16,8 +16,8 @@
     "default_provider": "huggingface"
   },
   "system_prompt": {
-    "context": "Sei un esperto di revisione del codice.",
-    "instructions": "This file describes a personas professional"
+    "context": "You are an expert engineer and your job is to provide suggestions about errors or code",
+    "instructions": "Your job is to provide suggestions"
   },
   "utils": {
     "role": "reviewer",
