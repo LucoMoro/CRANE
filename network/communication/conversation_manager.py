@@ -8,6 +8,7 @@ from network.config import base_path
 from network.utils.error_logger import ErrorLogger
 from network.utils.feedback_exception import FeedbackException
 from network.utils.summarization_exception import SummarizationException
+from network.communication.conversational_rag import ConversationalRAG
 
 
 class ConversationManager:
@@ -17,6 +18,7 @@ class ConversationManager:
         self.moderator = self.conversation.get_moderator()
         self.reviewers = self.conversation.get_reviewers()
         self.feedback_agent = self.conversation.get_feedback_agent()
+        self.conversationalRAG = ConversationalRAG("https://crane-0nuuost.svc.aped-4627-b74a.pinecone.io")
 
         #handling files
         self.iteration_id = "0"
@@ -245,8 +247,17 @@ class ConversationManager:
         self.reset_iteration_messages()
 
     def initial_review_selection(self, input_text):
+        """
+        Selects initial reviewers and collects their feedback on the input text.
+
+        This function iterates over the list of reviewers and queries their models twice.
+        If a reviewer provides a response, it is added to the conversation history.
+        If the query fails, an error is logged.
+
+        Args:
+            input_text (str): The input text to be reviewed.
+        """
         for reviewer in self.reviewers:
-            print(f"Sending request to {reviewer.get_name()} with data: {reviewer.get_instructions()}")
             for i in range(0, 2):
                 reviewer_response = reviewer.query_model()
                 if reviewer_response is None:
@@ -256,6 +267,19 @@ class ConversationManager:
                     self.conversation.add_message(message)
 
     def subsequent_rounds(self) -> None:
+        """
+        Conducts subsequent review rounds by querying reviewers with updated conversation history.
+
+        This function iterates over the reviewers and updates their prompts using the
+        conversation history. Each reviewer is allowed to respond once per iteration.
+        If a reviewer fails to respond, an error is logged, and the process continues.
+
+        Note: The number of iterations and allowed responses per reviewer are currently
+        set to 1 but can be increased when a more capable LLM is available.
+
+        Returns:
+            None
+        """
         for i in range(1): #todo: change the constant to 2 when a performing LLM will be used
             for reviewer in self.reviewers:
                 reviewer.set_full_prompt(reviewer.get_instructions(), self.conversation.get_history())
@@ -335,6 +359,7 @@ class ConversationManager:
                 moderator_message = Message(self.moderator.get_name(), summarized_response)
                 self.save_moderator_response(moderator_message.to_dict(), "summary")
                 self.conversation.set_history([]) #if the history is correctly summarized, the iteration's history will be deleted leaving space for the new one
+
                 return summarized_response
         self.reset_iteration()
         self.error_logger.add_error(f"The moderator failed to provide a valid response after {self.max_retries} attempts.")

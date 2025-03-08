@@ -2,8 +2,6 @@ import json
 
 import requests
 from network.config import huggingface_headers, openai_headers
-
-
 import re
 
 from network.utils.error_logger import ErrorLogger

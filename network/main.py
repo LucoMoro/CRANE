@@ -24,4 +24,4 @@ conversation_manager = ConversationManager(conversation)
 #response_message1 = Message("test_2", "test i am writing something in response to: reviewer_3 to test the new feature CAPS TEST")
 #conversation.add_message(response_message1)
 
-#conversation_manager.simulate_conversation("I am trying to print in C the message 'Hello world' but it does not work. The code is prinsf('Hello World'). Which is the problem?")
+conversation_manager.simulate_conversation("I am trying to print in C the message 'Hello world' but it does not work. The code is prinsf('Hello World'). Which is the problem?")
