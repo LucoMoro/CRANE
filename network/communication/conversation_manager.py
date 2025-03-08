@@ -18,7 +18,7 @@ class ConversationManager:
         self.moderator = self.conversation.get_moderator()
         self.reviewers = self.conversation.get_reviewers()
         self.feedback_agent = self.conversation.get_feedback_agent()
-        self.conversationalRAG = ConversationalRAG("https://crane-0nuuost.svc.aped-4627-b74a.pinecone.io")
+        self.conversational_rag = ConversationalRAG("https://crane-0nuuost.svc.aped-4627-b74a.pinecone.io")
 
         #handling files
         self.iteration_id = "0"
@@ -359,7 +359,7 @@ class ConversationManager:
                 moderator_message = Message(self.moderator.get_name(), summarized_response)
                 self.save_moderator_response(moderator_message.to_dict(), "summary")
                 self.conversation.set_history([]) #if the history is correctly summarized, the iteration's history will be deleted leaving space for the new one
-
+                self.conversational_rag.save_iteration(self.conversation_id, self.iteration_id, summarized_response)
                 return summarized_response
         self.reset_iteration()
         self.error_logger.add_error(f"The moderator failed to provide a valid response after {self.max_retries} attempts.")

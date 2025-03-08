@@ -10,7 +10,8 @@ class ConversationalRAG:
         self.index = self.pc.Index("crane")
 
     def save_iteration(self, conversation, iteration, full_history):
-        self.index.upsert(vectors=[(f"{conversation}-{iteration}", [], {
+        vector = [0.1] * 1536 #needed since upsert expects to have a vector of dimension 1536
+        self.index.upsert(vectors=[(f"{conversation}-{iteration}", vector, {
             "history": full_history,
             "iteration": iteration,
             "cr_id": conversation
