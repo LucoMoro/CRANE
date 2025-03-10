@@ -391,3 +391,6 @@ class ConversationManager:
         reviewer_errors = agent.get_error_logger()
         for error in reviewer_errors:
             self.error_logger.add_error(error)
+
+    def get_conversational_rag(self):
+        return self.conversational_rag
