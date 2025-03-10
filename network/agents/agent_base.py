@@ -167,6 +167,7 @@ class AgentBase:
         self.set_instructions(instructions + "\n\n" .join(input_text_strings)) #needed in order to correctly query the model
         if context is not None:
             self.set_context(context)
+        #print(f" [CONTESTO] {self.get_context()}")
 
     def get_instructions_from_response(self, response) -> str | None:
         """

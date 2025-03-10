@@ -28,5 +28,5 @@ conversation_manager = ConversationManager(conversation)
 
 conversation_manager.simulate_conversation("I am trying to print in C the message 'Hello world' but it does not work. The code is prinsf('Hello World'). Which is the problem?")
 
-rag_content = conversation_manager.get_conversational_rag().retrieve_full_history(str(int(conversation_manager.get_conversation_id())-1))
-print(f"test {rag_content}")
+#rag_content = conversation_manager.get_conversational_rag().retrieve_full_history(str(int(conversation_manager.get_conversation_id())-1))
+#print(f"test {rag_content}")

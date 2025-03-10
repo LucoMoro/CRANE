@@ -259,6 +259,8 @@ class ConversationManager:
         """
         for reviewer in self.reviewers:
             for i in range(0, 2):
+                if self.iteration_id != "0":
+                    reviewer.set_full_prompt(reviewer.get_instructions(), "", self.conversational_rag.retrieve_full_history(str(int(self.conversation_id))))
                 reviewer_response = reviewer.query_model()
                 if reviewer_response is None:
                     self.error_logger.add_error("An error occurred while communicating with the feedback agent.")
@@ -280,9 +282,13 @@ class ConversationManager:
         Returns:
             None
         """
-        for i in range(1): #todo: change the constant to 2 when a performing LLM will be used
+        for i in range(0, 1): #todo: change the constant to 2 when a performing LLM will be used
             for reviewer in self.reviewers:
-                reviewer.set_full_prompt(reviewer.get_instructions(), self.conversation.get_history())
+                if self.iteration_id != "0":
+                    reviewer.set_full_prompt(reviewer.get_instructions(), self.conversation.get_history(), self.conversational_rag.retrieve_full_history(str(int(self.conversation_id))))
+                    #print(f"[SUBSEQUENT ROUNDS]{self.conversational_rag.retrieve_full_history(str(int(self.conversation_id)))}")
+                else:
+                    reviewer.set_full_prompt(reviewer.get_instructions(), self.conversation.get_history())
                 if reviewer.get_iteration_messages() < 1: #todo: change the constant to 2 when a performing LLM will be used
                     reviewer_response = reviewer.query_model()
                     if reviewer_response is None:
