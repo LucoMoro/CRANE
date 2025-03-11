@@ -12,7 +12,7 @@ from network.communication.conversational_rag import ConversationalRAG
 
 
 class ConversationManager:
-    def __init__(self, conversation: Conversation, max_retries: int = None):
+    def __init__(self, conversation: Conversation, max_retries: int = None, messages_per_iteration: int = None):
         #fundamental setup
         self.conversation = conversation
         self.moderator = self.conversation.get_moderator()
@@ -32,8 +32,13 @@ class ConversationManager:
             self.max_retries = 5
         else:
             self.max_retries = max_retries
-        self.error_logger = ErrorLogger()
 
+        if messages_per_iteration is None:
+            self.messages_per_iteration = 1 #todo: change the constant to 2 when a performing LLM will be used
+        else:
+            self.messages_per_iteration = messages_per_iteration
+
+        self.error_logger = ErrorLogger()
 
     def get_max_retries(self) -> int:
         return self.max_retries
@@ -240,7 +245,8 @@ class ConversationManager:
         """
 
         self.initial_review_selection(input_text)
-        self.subsequent_rounds()
+        for i in range(0, self.messages_per_iteration):
+            self.subsequent_rounds()
 
         self.save_model_responses(self.conversation.get_history())
         self.increment_iteration_id()
@@ -258,15 +264,15 @@ class ConversationManager:
             input_text (str): The input text to be reviewed.
         """
         for reviewer in self.reviewers:
-            for i in range(0, 2):
-                if self.iteration_id != "0":
-                    reviewer.set_full_prompt(reviewer.get_instructions(), "", self.conversational_rag.retrieve_full_history(str(int(self.conversation_id))))
-                reviewer_response = reviewer.query_model()
-                if reviewer_response is None:
-                    self.error_logger.add_error("An error occurred while communicating with the feedback agent.")
-                elif reviewer_response is not None:
-                    message = Message(reviewer.get_name(), reviewer_response)
-                    self.conversation.add_message(message)
+            if self.iteration_id != "0":
+                reviewer.set_full_prompt(reviewer.get_instructions(), "", self.conversational_rag.retrieve_full_history(str(int(self.conversation_id))))
+            reviewer_response = reviewer.query_model()
+            if reviewer_response is None:
+                self.error_logger.add_error(f"An error occurred while communicating with {reviewer.get_name()} during the first step.")
+            elif reviewer_response is not None:
+                print(f"[REVIEWER] {reviewer.get_name()} : {reviewer_response}")
+                message = Message(reviewer.get_name(), reviewer_response)
+                self.conversation.add_message(message)
 
     def subsequent_rounds(self) -> None:
         """
@@ -282,22 +288,22 @@ class ConversationManager:
         Returns:
             None
         """
-        for i in range(0, 1): #todo: change the constant to 2 when a performing LLM will be used
-            for reviewer in self.reviewers:
-                if self.iteration_id != "0":
-                    reviewer.set_full_prompt(reviewer.get_instructions(), self.conversation.get_history(), self.conversational_rag.retrieve_full_history(str(int(self.conversation_id))))
-                    #print(f"[SUBSEQUENT ROUNDS]{self.conversational_rag.retrieve_full_history(str(int(self.conversation_id)))}")
-                else:
-                    reviewer.set_full_prompt(reviewer.get_instructions(), self.conversation.get_history())
-                if reviewer.get_iteration_messages() < 1: #todo: change the constant to 2 when a performing LLM will be used
-                    reviewer_response = reviewer.query_model()
-                    if reviewer_response is None:
-                        self.error_logger.add_error(f"An error occurred wile trying to communicate with {reviewer.get_name()}.")
-                        self.from_agent_get_errors(reviewer)
-                        reviewer_response = "" #the reviewers are non-blocking: if some user do not respond, the conversation will proceed
-                    reviewer.increment_iteration_messages()
-                    message = Message(reviewer.get_name(), reviewer_response)
-                    self.conversation.add_message(message)
+        for reviewer in self.reviewers:
+            #print(f"[REVIEWER NAME] {reviewer.get_name()}")
+            if self.iteration_id != "0":
+                reviewer.set_full_prompt(reviewer.get_instructions(), self.conversation.get_history(), self.conversational_rag.retrieve_full_history(str(int(self.conversation_id))))
+                #print(f"[SUBSEQUENT ROUNDS]{self.conversational_rag.retrieve_full_history(str(int(self.conversation_id)))}")
+            else:
+                reviewer.set_full_prompt(reviewer.get_instructions(), self.conversation.get_history())
+            if reviewer.get_iteration_messages() < self.messages_per_iteration: #todo: this check can be potentially removed since the for guarantees already 2 messages max per agent
+                reviewer_response = reviewer.query_model()
+                if reviewer_response is None:
+                    self.error_logger.add_error(f"An error occurred wile trying to communicate with {reviewer.get_name()}.")
+                    self.from_agent_get_errors(reviewer)
+                    reviewer_response = "" #the reviewers are non-blocking: if some user do not respond, the conversation will proceed
+                reviewer.increment_iteration_messages()
+                message = Message(reviewer.get_name(), reviewer_response)
+                self.conversation.add_message(message)
 
     def simulate_conversation(self, input_text: str = None) -> None:
         self.ensure_conversation_path() #ensures that the conversation's folder path exists
@@ -307,7 +313,7 @@ class ConversationManager:
         self.check_stopping_condition() #checks if the stopping condition is reached
         self.save_errors()
 
-        for i in range (0, 1): #todo change in more rounds
+        for i in range (0, 2): #todo change in more rounds
         #while not self.stopping_condition:
             print(f"Entering in the iteration number {self.get_iteration_id()}")
             self.ensure_iteration_path() # ensures that the iteration's folder path exists
