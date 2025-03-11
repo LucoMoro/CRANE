@@ -265,12 +265,13 @@ class ConversationManager:
         """
         for reviewer in self.reviewers:
             if self.iteration_id != "0":
-                reviewer.set_full_prompt(reviewer.get_instructions(), "", self.conversational_rag.retrieve_full_history(str(int(self.conversation_id))))
+                rag_content = self.conversational_rag.retrieve_full_history(self.conversation_id)
+                reviewer.set_full_prompt(reviewer.get_instructions(), "", rag_content)
             reviewer_response = reviewer.query_model()
             if reviewer_response is None:
                 self.error_logger.add_error(f"An error occurred while communicating with {reviewer.get_name()} during the first step.")
             elif reviewer_response is not None:
-                print(f"[REVIEWER] {reviewer.get_name()} : {reviewer_response}")
+                #print(f"[REVIEWER] {reviewer.get_name()} : {reviewer_response}")
                 message = Message(reviewer.get_name(), reviewer_response)
                 self.conversation.add_message(message)
 
@@ -291,7 +292,9 @@ class ConversationManager:
         for reviewer in self.reviewers:
             #print(f"[REVIEWER NAME] {reviewer.get_name()}")
             if self.iteration_id != "0":
-                reviewer.set_full_prompt(reviewer.get_instructions(), self.conversation.get_history(), self.conversational_rag.retrieve_full_history(str(int(self.conversation_id))))
+                rag_content = self.conversational_rag.retrieve_full_history(self.conversation_id)
+                #print(f"[HISTORY] {rag_content}")
+                reviewer.set_full_prompt(reviewer.get_instructions(), self.conversation.get_history(), rag_content)
                 #print(f"[SUBSEQUENT ROUNDS]{self.conversational_rag.retrieve_full_history(str(int(self.conversation_id)))}")
             else:
                 reviewer.set_full_prompt(reviewer.get_instructions(), self.conversation.get_history())
