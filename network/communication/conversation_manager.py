@@ -267,6 +267,8 @@ class ConversationManager:
             if self.iteration_id != "0":
                 rag_content = self.conversational_rag.retrieve_full_history(self.conversation_id)
                 reviewer.set_full_prompt(reviewer.get_instructions(), "", rag_content)
+            else:
+                reviewer.set_full_prompt(reviewer.get_instructions(), input_text)
             reviewer_response = reviewer.query_model()
             if reviewer_response is None:
                 self.error_logger.add_error(f"An error occurred while communicating with {reviewer.get_name()} during the first step.")
@@ -294,7 +296,7 @@ class ConversationManager:
             if self.iteration_id != "0":
                 rag_content = self.conversational_rag.retrieve_full_history(self.conversation_id)
                 #print(f"[HISTORY] {rag_content}")
-                reviewer.set_full_prompt(reviewer.get_instructions(), self.conversation.get_history(), rag_content)
+                reviewer.set_full_prompt(reviewer.get_instructions(), self.conversation.get_history(), rag_content) #todo: also in this case the input_text (the problem presented in the CR) should be included
                 #print(f"[SUBSEQUENT ROUNDS]{self.conversational_rag.retrieve_full_history(str(int(self.conversation_id)))}")
             else:
                 reviewer.set_full_prompt(reviewer.get_instructions(), self.conversation.get_history())
