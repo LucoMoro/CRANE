@@ -34,6 +34,7 @@ class AgentBase:
                 self.open_ai = None
 
             self.context = self.system_prompt.get("context", {})
+            self.original_context = self.system_prompt.get("context", {})
             self.instructions = self.system_prompt.get("instructions", {})
 
             self.utils = agent_data.get("utils", {})
@@ -52,14 +53,6 @@ class AgentBase:
         self.request_retries = 2
         self.wait_time = 2
         self.timeout = 10
-
-    def print(self):
-        print(self.hugging_face)
-        print(self.open_ai)
-        print(self.default_provider)
-        print(self.context)
-        print(self.instructions)
-        print(self.utils)
 
     def query_model(self) -> str | None:
         """
@@ -108,6 +101,12 @@ class AgentBase:
 
     def set_context(self, context: str) -> None:
         self.context = context
+
+    def get_original_context(self) -> str:
+        return self.original_context
+
+    def set_original_context(self, original_context: str) -> None:
+        self.original_context = original_context
 
     def get_instructions(self) -> str:
         return self.instructions
@@ -167,7 +166,8 @@ class AgentBase:
         self.set_instructions(instructions + "\n\n" .join(input_text_strings)) #needed in order to correctly query the model
         if context is not None:
             self.set_context(context)
-        #print(f" [CONTESTO] {self.get_context()}")
+        else:
+            self.set_context("")
 
     def get_instructions_from_response(self, response) -> str | None:
         """
@@ -243,8 +243,10 @@ class AgentBase:
                 - "parameters" (dict): A dictionary containing:
                     - "max_new_tokens" (int): The maximum number of tokens to generate.
         """
+        full_context = f"{self.original_context} Past iterations: \n{self.context}"
+
         payload = {
-            "inputs": f"Context: {self.context}\nInstructions: {self.instructions}",
+            "inputs": f"Context: {full_context}\nInstructions: {self.instructions}",
             "parameters": {
                 "max_new_tokens": int(self.max_tokens),  # Add token limit for Hugging Face
             }
@@ -268,10 +270,12 @@ class AgentBase:
                         - "content" (str): The corresponding text content (context or instructions).
                     - "max_tokens" (int): The maximum number of tokens to generate.
             """
+        full_context = f"{self.original_context} Past iterations: \n{self.context}"
+
         payload = {
             "model": self.model,
             "messages": [
-                {"role": "system", "content": self.context},
+                {"role": "system", "content": full_context},  # Combined context
                 {"role": "user", "content": self.instructions}
             ],
             "max_tokens": int(self.max_tokens),

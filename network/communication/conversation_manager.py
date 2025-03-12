@@ -200,6 +200,13 @@ class ConversationManager:
             json.dump(data, output, indent=4)
 
     def save_feedback_agent_response(self, message, file_name: str) -> None:
+        """
+        Saves the response of the feedback_agent as a JSON file in the current iteration's directory.
+
+        Args:
+            message: The messages to save. It is expected to be an instance of the Message class.
+            file_name (str): the name of the json file in which the response has to be saved
+        """
         full_path = os.path.join(self.base_path, f"conversation_{self.get_conversation_id()}/iteration_{self.get_iteration_id()}")
         feedback_agent_file = os.path.join(full_path, f"{file_name}.json")
         data = {
@@ -246,7 +253,7 @@ class ConversationManager:
 
         self.initial_review_selection(input_text)
         for i in range(0, self.messages_per_iteration):
-            self.subsequent_rounds()
+            self.subsequent_rounds(input_text)
 
         self.save_model_responses(self.conversation.get_history())
         self.increment_iteration_id()
@@ -266,18 +273,17 @@ class ConversationManager:
         for reviewer in self.reviewers:
             if self.iteration_id != "0":
                 rag_content = self.conversational_rag.retrieve_full_history(self.conversation_id)
-                reviewer.set_full_prompt(reviewer.get_instructions(), "", rag_content)
+                reviewer.set_full_prompt(reviewer.get_instructions(), input_text, rag_content)
             else:
                 reviewer.set_full_prompt(reviewer.get_instructions(), input_text)
             reviewer_response = reviewer.query_model()
             if reviewer_response is None:
                 self.error_logger.add_error(f"An error occurred while communicating with {reviewer.get_name()} during the first step.")
             elif reviewer_response is not None:
-                #print(f"[REVIEWER] {reviewer.get_name()} : {reviewer_response}")
                 message = Message(reviewer.get_name(), reviewer_response)
                 self.conversation.add_message(message)
 
-    def subsequent_rounds(self) -> None:
+    def subsequent_rounds(self, input_text) -> None:
         """
         Conducts subsequent review rounds by querying reviewers with updated conversation history.
 
@@ -292,14 +298,12 @@ class ConversationManager:
             None
         """
         for reviewer in self.reviewers:
-            #print(f"[REVIEWER NAME] {reviewer.get_name()}")
             if self.iteration_id != "0":
                 rag_content = self.conversational_rag.retrieve_full_history(self.conversation_id)
-                #print(f"[HISTORY] {rag_content}")
-                reviewer.set_full_prompt(reviewer.get_instructions(), self.conversation.get_history(), rag_content) #todo: also in this case the input_text (the problem presented in the CR) should be included
-                #print(f"[SUBSEQUENT ROUNDS]{self.conversational_rag.retrieve_full_history(str(int(self.conversation_id)))}")
+                integrated_data = self.integrate_rag_and_history(rag_content, self.conversation.get_history())
+                reviewer.set_full_prompt(reviewer.get_instructions(), input_text, integrated_data) #todo: also in this case the input_text (the problem presented in the CR) should be included
             else:
-                reviewer.set_full_prompt(reviewer.get_instructions(), self.conversation.get_history())
+                reviewer.set_full_prompt(reviewer.get_instructions(), input_text)
             if reviewer.get_iteration_messages() < self.messages_per_iteration: #todo: this check can be potentially removed since the for guarantees already 2 messages max per agent
                 reviewer_response = reviewer.query_model()
                 if reviewer_response is None:
@@ -411,3 +415,12 @@ class ConversationManager:
 
     def get_conversational_rag(self):
         return self.conversational_rag
+
+    def integrate_rag_and_history(self, rag_content, history):
+        # Convert RAG content into a structured format
+        rag_as_history = [{"sender": "RAG", "content": content} for content in rag_content]
+
+        # Combine with history
+        integrated_data = history + rag_as_history
+
+        return integrated_data
