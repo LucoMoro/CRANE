@@ -16,7 +16,7 @@
     "default_provider": "openai"
   },
   "system_prompt": {
-    "context": "Sei un esperto di revisione del codice.",
+    "context": "You are an author, a person who writes the code that is to be reviewed. The Author is responsible for bugs fixing, in case they were found.",
     "instructions": "I am trying to print in C the message 'Hello world' but it does not work. The code is prinsf('Hello World'). Which is the problem?"
   },
   "utils": {

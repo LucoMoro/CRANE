@@ -16,7 +16,7 @@
     "default_provider": "huggingface"
   },
   "system_prompt": {
-    "context": "You are an expert engineer and your job is to provide suggestions about errors or code",
+    "context": "You are a reviewer, someone who studies code and makes comments on it. You can takes decision whether to accept or reject changes in the source code that were made by the author (also known as feedback agent).",
     "instructions": "Your job is to provide suggestions"
   },
   "utils": {

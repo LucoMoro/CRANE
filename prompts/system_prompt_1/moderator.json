@@ -16,7 +16,7 @@
     "default_provider": "openai"
   },
   "system_prompt": {
-    "context": "Sei un esperto di revisione del codice.",
+    "context": "You are a moderator, a person who oversees the review process, resolves disputable situations, and performs double check.",
     "instructions": "I am trying to print in C the message 'Hello world' but it does not work. The codee is prinsf('Hello World'). Which is the problem?"
   },
   "utils": {
