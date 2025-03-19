@@ -303,7 +303,7 @@ class ConversationManager:
                 integrated_data = self.integrate_rag_and_history(rag_content, self.conversation.get_history())
                 reviewer.set_full_prompt(reviewer.get_instructions(), input_text, integrated_data) #todo: also in this case the input_text (the problem presented in the CR) should be included
             else:
-                reviewer.set_full_prompt(reviewer.get_instructions(), input_text)
+                reviewer.set_full_prompt(reviewer.get_instructions(), input_text, self.conversation.get_history())
             if reviewer.get_iteration_messages() < self.messages_per_iteration: #todo: this check can be potentially removed since the for guarantees already 2 messages max per agent
                 reviewer_response = reviewer.query_model()
                 if reviewer_response is None:
@@ -328,7 +328,7 @@ class ConversationManager:
             self.ensure_iteration_path() # ensures that the iteration's folder path exists
             summarized_history = self.summarize_iteration_history() #summarizes the previous iteration's history
             current_input_text = self.fetch_model_feedback(summarized_history) #provides the summarized history as a feedback to the model
-            self.simulate_iteration(current_input_text)  # simulates the iteration
+            self.simulate_iteration(f"Current problem: {current_input_text}")  # simulates the iteration
             self.check_stopping_condition()  # checks if the stopping condition is reached
             self.save_errors()
 

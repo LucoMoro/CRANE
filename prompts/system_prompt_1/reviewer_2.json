@@ -13,7 +13,7 @@
       "api_key": "",
       "max_new_tokens": 50
     },
-    "default_provider": "huggingface"
+    "default_provider": "openai"
   },
   "system_prompt": {
     "context": "You are a reviewer, someone who studies code and makes comments on it. You can takes decision whether to accept or reject changes in the source code that were made by the author (also known as feedback agent).",
