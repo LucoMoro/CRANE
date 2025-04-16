@@ -19,7 +19,7 @@ This project investigates a novel approach to prompt engineering where LLM agent
 
 ```bash
 git clone https://github.com/LucoMoro/CRANE
-cd crane
+cd CRANE
 ```
 
 ### 2. Install Dependencies 
