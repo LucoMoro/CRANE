@@ -41,9 +41,6 @@ This package is Windows-only and will cause installation errors on Linux-based s
 python -r requirements.txt
 ```
 
-```bash
-python -m pip install -r requirements.txt
-```
 
 ### 3. Configure Environment Variables
 Create a .env file in the root of the project and add the following variables:
@@ -60,13 +57,13 @@ BASE_PATH=./conversations
 ## On Ubuntu/Linux
 Ensure model paths in the code do not include "../" — update them to be relative (e.g. "models/..." instead of "../models/..."). To run the project:
 ```bash
-python main.py
+python3 -m network.main
 ```
 
 ## On Windows
 You can keep "../" in model paths if they work for you. To run the project
 ```bash
-python3 -m network.main
+python main.py
 ```
 
 ---
