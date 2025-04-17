@@ -26,15 +26,15 @@ cd CRANE
 Make sure you have Python installed (preferably 3.12.9), then:
 
 ## On Ubuntu/Linux
-
-```bash
-python -m pip install -r requirements.txt
-```
 Important: Before installing, open requirements.txt and remove the following line: 
 ```bash
 pywin32==310
 ```
-This package is Windows-only and will cause installation errors on Linux-based systems.
+This package is Windows-only and will cause installation errors on Linux-based systems. Then:
+
+```bash
+python -m pip install -r requirements.txt
+```
 
 ## On Windows
 ```bash
