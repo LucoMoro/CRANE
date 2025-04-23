@@ -7,6 +7,8 @@ from network.communication.message import Message
 from network.config import base_path
 from network.utils.error_logger import ErrorLogger
 from network.utils.feedback_exception import FeedbackException
+from network.utils.retrieval_rag_exception import RetrievalRAGException
+from network.utils.save_rag_exception import SaveRAGException
 from network.utils.summarization_exception import SummarizationException
 from network.communication.conversational_rag import ConversationalRAG
 
@@ -269,6 +271,10 @@ class ConversationManager:
         for reviewer in self.reviewers:
             if self.iteration_id != "0":
                 rag_content = self.conversational_rag.retrieve_full_history(self.conversation_id)
+                if rag_content is None:
+                    self.reset_iteration()
+                    self.error_logger.add_error(f"Unable to retrieve RAG's content during the iteration number {self.iteration_id}.")
+                    raise RetrievalRAGException(f"Unable to retrieve RAG's content during the iteration number {self.iteration_id}.")
                 reviewer.set_full_prompt(reviewer.get_instructions(), input_text, rag_content)
             else:
                 reviewer.set_full_prompt(reviewer.get_instructions(), input_text)
@@ -296,6 +302,10 @@ class ConversationManager:
         for reviewer in self.reviewers:
             if self.iteration_id != "0":
                 rag_content = self.conversational_rag.retrieve_full_history(self.conversation_id)
+                if rag_content is None:
+                    self.reset_iteration()
+                    self.error_logger.add_error(f"Unable to retrieve RAG's content during the iteration number {self.iteration_id}.")
+                    raise RetrievalRAGException(f"Unable to retrieve RAG's content during the iteration number {self.iteration_id}.")
                 integrated_data = self.integrate_rag_and_history(rag_content, self.conversation.get_history())
                 reviewer.set_full_prompt(reviewer.get_instructions(), input_text, integrated_data) #todo: also in this case the input_text (the problem presented in the CR) should be included
             else:
@@ -377,7 +387,11 @@ class ConversationManager:
                 moderator_message = Message(self.moderator.get_name(), summarized_response)
                 self.save_moderator_response(moderator_message.to_dict(), "summary")
                 self.conversation.set_history([]) #if the history is correctly summarized, the iteration's history will be deleted leaving space for the new one
-                self.conversational_rag.save_iteration(self.conversation_id, self.iteration_id, summarized_response)
+                save_state = self.conversational_rag.save_iteration(self.conversation_id, self.iteration_id, summarized_response)
+                if save_state == 0:
+                    self.reset_iteration()
+                    self.error_logger.add_error(f"Failed to save messages to RAG (iteration_id={self.iteration_id}).")
+                    raise SaveRAGException(f"Failed to save messages to RAG (iteration_id={self.iteration_id}).")
                 return summarized_response
         self.reset_iteration()
         self.error_logger.add_error(f"The moderator failed to provide a valid response after {self.max_retries} attempts.")
