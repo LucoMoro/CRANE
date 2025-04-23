@@ -235,10 +235,6 @@ class ConversationManager:
         Args:
             input_text (str, optional): Input of the current iteration.
 
-        **Moderator Initialization**:
-           - Based on the input, the moderator's prompt is set and then queried.
-           - As a response, the moderator determines the first reviewer to be queried in the current iteration.
-
         **Initial Reviewer Selection**:
            - The first reviewer response is processed and added to the iteration history.
 
@@ -261,7 +257,7 @@ class ConversationManager:
 
     def initial_review_selection(self, input_text):
         """
-        Selects initial reviewers and collects their feedback on the input text.
+        Collects the feedback from the initial reviewers.
 
         This function iterates over the list of reviewers and queries their models twice.
         If a reviewer provides a response, it is added to the conversation history.
@@ -309,7 +305,7 @@ class ConversationManager:
                 if reviewer_response is None:
                     self.error_logger.add_error(f"An error occurred wile trying to communicate with {reviewer.get_name()}.")
                     self.from_agent_get_errors(reviewer)
-                    reviewer_response = "" #the reviewers are non-blocking: if some user do not respond, the conversation will proceed
+                    reviewer_response = "" #the reviewers are non-blocking: if some user do not respond, the conversation will continue
                 reviewer.increment_iteration_messages()
                 message = Message(reviewer.get_name(), reviewer_response)
                 self.conversation.add_message(message)
@@ -317,6 +313,7 @@ class ConversationManager:
     def simulate_conversation(self, input_text: str = None) -> None:
         self.ensure_conversation_path() #ensures that the conversation's folder path exists
 
+        print("Starting the execution of CRANE")
         self.ensure_iteration_path() #ensures that the iteration's folder path exists
         self.simulate_iteration(input_text) #simulates the iteration
         self.check_stopping_condition() #checks if the stopping condition is reached
