@@ -320,12 +320,12 @@ class ConversationManager:
                 message = Message(reviewer.get_name(), reviewer_response)
                 self.conversation.add_message(message)
 
-    def simulate_conversation(self, input_text: str = None) -> None:
+    def simulate_conversation(self, cr_task: str = None, input_text: str = None) -> None:
         self.ensure_conversation_path() #ensures that the conversation's folder path exists
 
         print("Starting the execution of CRANE")
         self.ensure_iteration_path() #ensures that the iteration's folder path exists
-        self.simulate_iteration(input_text) #simulates the iteration
+        self.simulate_iteration(f"CHANGE REQUEST TASK: {cr_task}; Current problem: {input_text}") #simulates the iteration
         self.check_stopping_condition() #checks if the stopping condition is reached
         self.save_errors()
 
@@ -334,9 +334,9 @@ class ConversationManager:
             print(f"Entering in the iteration number {self.get_iteration_id()}")
             self.ensure_iteration_path() # ensures that the iteration's folder path exists
             summarized_history = self.summarize_iteration_history() #summarizes the previous iteration's history
-            print(f"{input_text}")
+            #print(f"CHANGE REQUEST TASK: {cr_task}; Current problem: {input_text}")
             current_input_text = self.fetch_model_feedback(summarized_history, input_text) #provides the summarized history as a feedback to the model
-            self.simulate_iteration(f"Current problem: {current_input_text}")  # simulates the iteration
+            self.simulate_iteration(f"CHANGE REQUEST TASK: {cr_task}; Current problem: {current_input_text}")  # simulates the iteration
             self.check_stopping_condition()  # checks if the stopping condition is reached
             self.save_errors()
             input_text = current_input_text
