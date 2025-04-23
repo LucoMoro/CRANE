@@ -334,15 +334,17 @@ class ConversationManager:
             print(f"Entering in the iteration number {self.get_iteration_id()}")
             self.ensure_iteration_path() # ensures that the iteration's folder path exists
             summarized_history = self.summarize_iteration_history() #summarizes the previous iteration's history
-            current_input_text = self.fetch_model_feedback(summarized_history) #provides the summarized history as a feedback to the model
+            print(f"{input_text}")
+            current_input_text = self.fetch_model_feedback(summarized_history, input_text) #provides the summarized history as a feedback to the model
             self.simulate_iteration(f"Current problem: {current_input_text}")  # simulates the iteration
             self.check_stopping_condition()  # checks if the stopping condition is reached
             self.save_errors()
+            input_text = current_input_text
 
         self.increment_conversation_id()
         self.reset_iteration()
 
-    def fetch_model_feedback(self, summarized_history) -> str:
+    def fetch_model_feedback(self, summarized_history, input_text) -> str:
         """
         Fetches feedback from the model based on the agent's instructions and history.
 
@@ -352,7 +354,8 @@ class ConversationManager:
         Returns:
             str: The feedback response from the model.
         """
-        self.feedback_agent.set_full_prompt(self.feedback_agent.get_instructions(), summarized_history)
+        task = f"Actionable insights: {summarized_history} \n\n Code to work on: {input_text}"
+        self.feedback_agent.set_full_prompt(self.feedback_agent.get_instructions(), task)
         for i in range(0, self.max_retries):
             feedback_response = self.feedback_agent.query_model()
             if feedback_response is None:

@@ -5,7 +5,7 @@
       "model": "gpt-3.5-turbo",
       "endpoint": "https://api.openai.com/v1/chat/completions",
       "api_key": "",
-      "max_tokens": 100
+      "max_tokens": 200
     },
     "huggingface": {
       "model": "gpt-neo-2.7B",
@@ -17,7 +17,7 @@
   },
   "system_prompt": {
     "context": "You are an author, a person who writes the code that is to be reviewed. The Author is responsible for bugs fixing, in case they were found.",
-    "instructions": "I am trying to print in C the message 'Hello world' but it does not work. The code is prinsf('Hello World'). Which is the problem?"
+    "instructions": "Based on the CHANGE REQUEST TASK, resolve each code snippet individually.\nReturn the full updated version of each snippet as pure code — no comments, no explanations.\nMaintain the snippet delimiters (<<BEGINNING SNIPPET X>> / <<END SNIPPET X>>) and include the modified code between them.\nDo not return only the modified lines — return each complete, corrected snippet."
   },
   "utils": {
     "role": "external agent",

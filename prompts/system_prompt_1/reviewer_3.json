@@ -17,7 +17,7 @@
   },
   "system_prompt": {
     "context": "You are a reviewer, someone who studies code and makes comments on it. You can takes decision whether to accept or reject changes in the source code that were made by the author (also known as feedback agent).",
-    "instructions": "Your job is to provide suggestions"
+    "instructions": "Your job is to provide suggestions. Focus on 'CHANGE REQUEST TASK' and not on the formatting stile of the code"
   },
   "utils": {
     "role": "reviewer",
