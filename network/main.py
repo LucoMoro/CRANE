@@ -26,61 +26,35 @@ conversation_manager = ConversationManager(conversation)
 
 #conversation_manager.get_conversational_rag().clear_all_data()
 
-conversation_manager.simulate_conversation("""/* CR_TASK Change Request:
+conversation_manager.simulate_conversation("""/* CR_TASK Fix issue "Permission Denial: broadcasting Intent ... requires null"
 
-Modify the BankAccount class to introduce a new feature: Adding a checkBalance method, which will allow checking the balance without synchronization.
+The added if corresponds to a similar check on another Permission Denial: broadcasting some pages
+above within the same module.
 
-Ensure that the withdrawal operation can fail after a certain threshold, say if the balance is below a certain limit (e.g., $50).
+The problem was spotted with broadcasting a ACTION_NEW_OUTGOING_CALL intent which currently does not
+require any permissions. It is suggested to require a new permission MAKE_OUTGOING_CALL for the
+broadcast receiver in Phone application. */""",
+                                           """(ResolveInfo)nextReceiver;
 
-Add a log message when the account's balance goes below $50 during any operation. */""",
-                                           """class BankAccount {
-    private int balance = 0;
-
-    // Synchronized method to ensure thread safety
-    public synchronized void deposit(int amount) {
-        balance += amount;
-        System.out.println("Deposited: " + amount + ", New Balance: " + balance);
-    }
-
-    // Synchronized method to ensure thread safety
-    public synchronized void withdraw(int amount) {
-        if (balance >= amount) {
-            balance -= amount;
-            System.out.println("Withdrew: " + amount + ", New Balance: " + balance);
-        } else {
-            System.out.println("Insufficient funds to withdraw: " + amount);
-        }
-    }
-
-    public int getBalance() {
-        return balance;
-    }
-}
-
-public class BankTest {
-    public static void main(String[] args) {
-        BankAccount account = new BankAccount();
-
-        // Thread for depositing money
-        Thread depositThread = new Thread(() -> {
-            for (int i = 0; i < 5; i++) {
-                account.deposit(100);
-                try { Thread.sleep(100); } catch (InterruptedException e) { e.printStackTrace(); }
+boolean skip = false;
+            int perm = checkComponentPermission(info.activityInfo.permission,
+                    r.callingPid, r.callingUid,
+                    info.activityInfo.exported
+                            ? -1 : info.activityInfo.applicationInfo.uid);
+            if (perm != PackageManager.PERMISSION_GRANTED) {
+                Log.w(TAG, "Permission Denial: broadcasting "
+                        + r.intent.toString()
+                        + " from " + r.callerPackage + " (pid=" + r.callingPid
+                        + ", uid=" + r.callingUid + ")"
+                        + " requires " + info.activityInfo.permission
+                        + " due to receiver " + info.activityInfo.packageName
+                        + "/" + info.activityInfo.name);
+                skip = true;
             }
-        });
+if (r.callingUid != Process.SYSTEM_UID &&
+r.requiredPermission != null) {
+try {
 
-        // Thread for withdrawing money
-        Thread withdrawThread = new Thread(() -> {
-            for (int i = 0; i < 5; i++) {
-                account.withdraw(50);
-                try { Thread.sleep(150); } catch (InterruptedException e) { e.printStackTrace(); }
-            }
-        });
-
-        depositThread.start();
-        withdrawThread.start();
-    }
-}
 """)
 
 #rag_content = conversation_manager.get_conversational_rag().retrieve_full_history(str(int(conversation_manager.get_conversation_id())-1))
