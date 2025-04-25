@@ -2,7 +2,7 @@
   "name": "Reviewer 1",
   "api_settings": {
     "openai": {
-      "model": "gpt-3.5-turbo",
+      "model": "gpt-4o-mini",
       "endpoint": "https://api.openai.com/v1/chat/completions",
       "api_key": "",
       "max_tokens": 200
@@ -16,8 +16,8 @@
     "default_provider": "openai"
   },
   "system_prompt": {
-    "context": "You are an author, a person who writes the code that is to be reviewed. The Author is responsible for bugs fixing, in case they were found.",
-    "instructions": "Based on the CHANGE REQUEST TASK, resolve each code snippet individually.\nReturn the full updated version of each snippet as pure code — no comments, no explanations.\nMaintain the snippet delimiters (<<BEGINNING SNIPPET X>> / <<END SNIPPET X>>) and include the modified code between them.\nDo not return only the modified lines — return each complete, corrected snippet."
+    "context": "You are the original author of the code and are responsible for fixing bugs or implementing changes based on the given CR_TASK.\n\n",
+    "instructions": "Provide me informations if you struggle to produce code and why. \n For each code snippet provided:\n\nResolve the snippet fully, based on the task described.\n\nApply changes directly in the code — do not describe them.\n\nReturn each corrected snippet enclosed between its original delimiters (<<Beginning of snippet n. X>> and <<End of snippet n. X>>).\n\nReturn the full, compilable snippet, not just the modified lines.\n\nUse proper Java syntax (unless another language is specified).\n\nIntegrate logic across snippets if they are related (e.g., helper methods).\n\nMaintain functionally correct code — make sure methods have correct return values, scopes, and syntax.\n\nBelow is the CHANGE REQUEST TASK followed by one or more code snippets."
   },
   "utils": {
     "role": "external agent",

@@ -26,27 +26,61 @@ conversation_manager = ConversationManager(conversation)
 
 #conversation_manager.get_conversational_rag().clear_all_data()
 
-conversation_manager.simulate_conversation("""AlertDialog.Builder setMultiChoiceItems losing checked state for invisible items in UI
-when backed by a Cursor. Please refer to the issue tracker for more details""",
-                                           """<<BEGINNING SNIPPET 1>>>
-Cursor cursor) {
-CheckedTextView text = (CheckedTextView) view.findViewById(R.id.text1);
-text.setText(cursor.getString(cursor.getColumnIndexOrThrow(mLabelColumn)));
+conversation_manager.simulate_conversation("""/* CR_TASK Change Request:
+
+Modify the BankAccount class to introduce a new feature: Adding a checkBalance method, which will allow checking the balance without synchronization.
+
+Ensure that the withdrawal operation can fail after a certain threshold, say if the balance is below a certain limit (e.g., $50).
+
+Add a log message when the account's balance goes below $50 during any operation. */""",
+                                           """class BankAccount {
+    private int balance = 0;
+
+    // Synchronized method to ensure thread safety
+    public synchronized void deposit(int amount) {
+        balance += amount;
+        System.out.println("Deposited: " + amount + ", New Balance: " + balance);
+    }
+
+    // Synchronized method to ensure thread safety
+    public synchronized void withdraw(int amount) {
+        if (balance >= amount) {
+            balance -= amount;
+            System.out.println("Withdrew: " + amount + ", New Balance: " + balance);
+        } else {
+            System.out.println("Insufficient funds to withdraw: " + amount);
+        }
+    }
+
+    public int getBalance() {
+        return balance;
+    }
 }
 
-@Override
+public class BankTest {
+    public static void main(String[] args) {
+        BankAccount account = new BankAccount();
 
-<<END SNIPPET 1>>>
-<<BEGINNING SNIPPET 2>>>
-View view = mInflater.inflate(
-R.layout.select_dialog_multichoice, parent, false);
-bindView(view, context, cursor);
-                            if (cursor.getInt(cursor.getColumnIndexOrThrow(mIsCheckedColumn)) == 1) {
-                                listView.setItemChecked(cursor.getPosition(), true);
-                            }
-return view;
+        // Thread for depositing money
+        Thread depositThread = new Thread(() -> {
+            for (int i = 0; i < 5; i++) {
+                account.deposit(100);
+                try { Thread.sleep(100); } catch (InterruptedException e) { e.printStackTrace(); }
+            }
+        });
+
+        // Thread for withdrawing money
+        Thread withdrawThread = new Thread(() -> {
+            for (int i = 0; i < 5; i++) {
+                account.withdraw(50);
+                try { Thread.sleep(150); } catch (InterruptedException e) { e.printStackTrace(); }
+            }
+        });
+
+        depositThread.start();
+        withdrawThread.start();
+    }
 }
-<<END SNIPPET 2>>>
 """)
 
 #rag_content = conversation_manager.get_conversational_rag().retrieve_full_history(str(int(conversation_manager.get_conversation_id())-1))
