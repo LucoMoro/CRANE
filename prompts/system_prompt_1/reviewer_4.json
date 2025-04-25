@@ -5,7 +5,7 @@
       "model": "gpt-4o-mini",
       "endpoint": "https://api.openai.com/v1/chat/completions",
       "api_key": "",
-      "max_tokens": 100
+      "max_tokens": 50
     },
     "huggingface": {
       "model": "distilgpt2",

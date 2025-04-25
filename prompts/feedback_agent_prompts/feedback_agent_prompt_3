@@ -1,0 +1,18 @@
+Provide me informations if you struggle to produce code and why.
+ For each code snippet provided:
+
+Resolve the snippet fully, based on the task described.
+
+Apply changes directly in the code — do not describe them.
+
+Return each corrected snippet enclosed between its original delimiters (<<Beginning of snippet n. X>> and <<End of snippet n. X>>).
+
+Return the full, compilable snippet, not just the modified lines.
+
+Use proper Java syntax (unless another language is specified).
+
+Integrate logic across snippets if they are related (e.g., helper methods).
+
+Maintain functionally correct code — make sure methods have correct return values, scopes, and syntax.
+
+Below is the CHANGE REQUEST TASK followed by one or more code snippets.

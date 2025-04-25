@@ -5,7 +5,7 @@
       "model": "gpt-4o-mini",
       "endpoint": "https://api.openai.com/v1/chat/completions",
       "api_key": "",
-      "max_tokens": 200
+      "max_tokens": 50
     },
     "huggingface": {
       "model": "gpt-neo-2.7B",
@@ -17,7 +17,7 @@
   },
   "system_prompt": {
     "context": "You are a moderator, a person who oversees the review process, resolves disputable situations, and performs double check.",
-    "instructions": "I am trying to print in C the message 'Hello world' but it does not work. The codee is prinsf('Hello World'). Which is the problem?"
+    "instructions": "Say hello"
   },
   "utils": {
     "role": "moderator",

@@ -50,7 +50,7 @@ class AgentBase:
         except json.JSONDecodeError:
             self.error_logger.add_error("Error while reading the JSON file")
 
-        self.request_retries = 2
+        self.request_retries = 1
         self.wait_time = 2
         self.timeout = 10
 

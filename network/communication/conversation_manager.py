@@ -229,24 +229,20 @@ class ConversationManager:
 
     def simulate_iteration(self, input_text: str = None) -> None:
         """
-        Simulates an iteration of a multi-model review and response process.
+        Simulates a single iteration of the conversation process.
 
-        This method orchestrates the interactions between a "moderator" model and a list of "reviewer"
-        models. It ensures that all models contribute to the conversation.
+        This method runs the initial review selection using the provided input text,
+        then proceeds through a predefined number of message rounds (determined by
+        `self.messages_per_iteration`). After completing all rounds, it saves the
+        generated model responses, increments the iteration ID, and resets the messages
+        for the next iteration.
 
         Args:
-            input_text (str, optional): Input of the current iteration.
+            input_text (str, optional): The input text to initiate the conversation.
+            If None, the method uses a default or pre-existing input.
 
-        **Initial Reviewer Selection**:
-           - The first reviewer response is processed and added to the iteration history.
-
-        **Subsequent Review Rounds**:
-           - All reviewers, except the initial one, are queried ensuring that each reviewer contributes at most 2 times in each iteration.
-           - Reviewer responses are processed and added to the iteration history
-
-        **Finalization**:
-           - Validates the conversation's integrity and iteration path.
-           - Increments the iteration ID to track progress.
+        Returns:
+            None
         """
 
         self.initial_review_selection(input_text)
@@ -329,7 +325,7 @@ class ConversationManager:
         self.check_stopping_condition() #checks if the stopping condition is reached
         self.save_errors()
 
-        for i in range (0, 2): #todo change in more rounds
+        for i in range (0, 2):
         #while not self.stopping_condition:
             print(f"Entering in the iteration number {self.get_iteration_id()}")
             self.ensure_iteration_path() # ensures that the iteration's folder path exists
@@ -431,10 +427,23 @@ class ConversationManager:
         return self.conversational_rag
 
     def integrate_rag_and_history(self, rag_content, history):
-        # Convert RAG content into a structured format
-        rag_as_history = [{"sender": "RAG", "content": content} for content in rag_content]
+        """
+        Integrates retrieved RAG content with the existing conversation history.
 
-        # Combine with history
+        Converts each RAG (Retrieval-Augmented Generation) content item into a message
+        format consistent with the conversation history, labeling the sender as "RAG".
+        The new RAG messages are then appended to the existing history.
+
+        Args:
+            rag_content (list): A list of strings representing content retrieved via RAG.
+            history (list): A list of existing message dictionaries in the format
+                            [{"sender": str, "content": str}, ...].
+
+        Returns:
+            list: A combined list of message dictionaries including the original history
+                  and the newly formatted RAG content.
+        """
+        rag_as_history = [{"sender": "RAG", "content": content} for content in rag_content]
         integrated_data = history + rag_as_history
 
         return integrated_data
