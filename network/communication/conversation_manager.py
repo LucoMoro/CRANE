@@ -250,7 +250,6 @@ class ConversationManager:
             self.subsequent_rounds(input_text)
 
         self.save_model_responses(self.conversation.get_history())
-        self.increment_iteration_id()
         self.reset_iteration_messages()
 
     def initial_review_selection(self, input_text):
@@ -322,20 +321,20 @@ class ConversationManager:
         print("Starting the execution of CRANE")
         self.ensure_iteration_path() #ensures that the iteration's folder path exists
         self.simulate_iteration(f"CHANGE REQUEST TASK: {cr_task}; Current problem: {input_text}") #simulates the iteration
-        self.check_stopping_condition() #checks if the stopping condition is reached
+        summarized_history = self.summarize_iteration_history()  # summarizes the previous iteration's history
+        current_input_text = self.fetch_model_feedback(summarized_history, input_text)  # provides the summarized history as a feedback to the model
         self.save_errors()
+        self.increment_iteration_id()
 
-        for i in range (0, 2):
-        #while not self.stopping_condition:
+        for i in range (0, 2) or self.stopping_condition == False:
             print(f"Entering in the iteration number {self.get_iteration_id()}")
             self.ensure_iteration_path() # ensures that the iteration's folder path exists
-            summarized_history = self.summarize_iteration_history() #summarizes the previous iteration's history
-            #print(f"CHANGE REQUEST TASK: {cr_task}; Current problem: {input_text}")
-            current_input_text = self.fetch_model_feedback(summarized_history, input_text) #provides the summarized history as a feedback to the model
             self.simulate_iteration(f"CHANGE REQUEST TASK: {cr_task}; Current problem: {current_input_text}")  # simulates the iteration
             self.check_stopping_condition()  # checks if the stopping condition is reached
+            summarized_history = self.summarize_iteration_history()  # summarizes the previous iteration's history
+            current_input_text = self.fetch_model_feedback(summarized_history, current_input_text)  # provides the summarized history as a feedback to the model
             self.save_errors()
-            input_text = current_input_text
+            self.increment_iteration_id()
 
         self.increment_conversation_id()
         self.reset_iteration()
