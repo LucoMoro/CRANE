@@ -326,15 +326,18 @@ class ConversationManager:
         self.save_errors()
         self.increment_iteration_id()
 
-        for i in range (0, 2) or self.stopping_condition == False:
+        i = 0
+        while i < 2 and self.stopping_condition == False:
             print(f"Entering in the iteration number {self.get_iteration_id()}")
             self.ensure_iteration_path() # ensures that the iteration's folder path exists
             self.simulate_iteration(f"CHANGE REQUEST TASK: {cr_task}; Current problem: {current_input_text}")  # simulates the iteration
             self.check_stopping_condition()  # checks if the stopping condition is reached
-            summarized_history = self.summarize_iteration_history()  # summarizes the previous iteration's history
-            current_input_text = self.fetch_model_feedback(summarized_history, current_input_text)  # provides the summarized history as a feedback to the model
+            if not self.stopping_condition:
+                summarized_history = self.summarize_iteration_history()  # summarizes the previous iteration's history
+                current_input_text = self.fetch_model_feedback(summarized_history, current_input_text)  # provides the summarized history as a feedback to the model
             self.save_errors()
             self.increment_iteration_id()
+            i=i+1
 
         self.increment_conversation_id()
         self.reset_iteration()
@@ -395,15 +398,18 @@ class ConversationManager:
         self.error_logger.add_error(f"The moderator failed to provide a valid response after {self.max_retries} attempts.")
         raise SummarizationException(f"The moderator failed to provide a valid response after {self.max_retries} attempts.")
 
-    def check_stopping_condition(self) -> bool:
+    def check_stopping_condition(self) -> None:
         """
         Checks whether the stopping condition for the process has been met.
 
         Returns:
             bool: returns True if the stopping condition has been met.
         """
-        self.stopping_condition = True
-        return True
+        if all(message["content"] == "Another round is not needed" for message in self.conversation.get_history()):
+            self.stopping_condition = True
+        else:
+            self.stopping_condition = False
+
 
     def reset_iteration_messages(self) -> None:
         for reviewer in self.reviewers:

@@ -65,3 +65,6 @@ class Message:
                 "content": self.content,
             }
         return result
+
+    def get_content(self):
+        return self.content
