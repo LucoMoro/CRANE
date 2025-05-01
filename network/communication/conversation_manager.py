@@ -36,7 +36,7 @@ class ConversationManager:
             self.max_retries = max_retries
 
         if messages_per_iteration is None:
-            self.messages_per_iteration = 1 #todo: change the constant to 2 when a performing LLM will be used
+            self.messages_per_iteration = 1
         else:
             self.messages_per_iteration = messages_per_iteration
 
@@ -263,13 +263,15 @@ class ConversationManager:
         Args:
             input_text (str): The input text to be reviewed.
         """
+        rag_content = ""
+        if self.iteration_id != "0":
+            rag_content = self.conversational_rag.retrieve_full_history(self.conversation_id)
+            if rag_content is None:
+                self.reset_iteration()
+                self.error_logger.add_error(f"Unable to retrieve RAG's content during the iteration number {self.iteration_id}.")
+                raise RetrievalRAGException(f"Unable to retrieve RAG's content during the iteration number {self.iteration_id}.")
         for reviewer in self.reviewers:
             if self.iteration_id != "0":
-                rag_content = self.conversational_rag.retrieve_full_history(self.conversation_id)
-                if rag_content is None:
-                    self.reset_iteration()
-                    self.error_logger.add_error(f"Unable to retrieve RAG's content during the iteration number {self.iteration_id}.")
-                    raise RetrievalRAGException(f"Unable to retrieve RAG's content during the iteration number {self.iteration_id}.")
                 reviewer.set_full_prompt(reviewer.get_instructions(), input_text, rag_content)
             else:
                 reviewer.set_full_prompt(reviewer.get_instructions(), input_text)
@@ -294,15 +296,18 @@ class ConversationManager:
         Returns:
             None
         """
+        rag_content = ""
+        if self.iteration_id != "0":
+            rag_content = self.conversational_rag.retrieve_full_history(self.conversation_id)
+            if rag_content is None:
+                self.reset_iteration()
+                self.error_logger.add_error(f"Unable to retrieve RAG's content during the iteration number {self.iteration_id}.")
+                raise RetrievalRAGException(f"Unable to retrieve RAG's content during the iteration number {self.iteration_id}.")
+
         for reviewer in self.reviewers:
             if self.iteration_id != "0":
-                rag_content = self.conversational_rag.retrieve_full_history(self.conversation_id)
-                if rag_content is None:
-                    self.reset_iteration()
-                    self.error_logger.add_error(f"Unable to retrieve RAG's content during the iteration number {self.iteration_id}.")
-                    raise RetrievalRAGException(f"Unable to retrieve RAG's content during the iteration number {self.iteration_id}.")
                 integrated_data = self.integrate_rag_and_history(rag_content, self.conversation.get_history())
-                reviewer.set_full_prompt(reviewer.get_instructions(), input_text, integrated_data) #todo: also in this case the input_text (the problem presented in the CR) should be included
+                reviewer.set_full_prompt(reviewer.get_instructions(), input_text, integrated_data)
             else:
                 reviewer.set_full_prompt(reviewer.get_instructions(), input_text, self.conversation.get_history())
             if reviewer.get_iteration_messages() < self.messages_per_iteration: #todo: this check can be potentially removed since the for guarantees already 2 messages max per agent
@@ -310,7 +315,7 @@ class ConversationManager:
                 if reviewer_response is None:
                     self.error_logger.add_error(f"An error occurred wile trying to communicate with {reviewer.get_name()}.")
                     self.from_agent_get_errors(reviewer)
-                    reviewer_response = "" #the reviewers are non-blocking: if some user do not respond, the conversation will continue
+                    reviewer_response = "" #the reviewers' messages are non-blocking: if a reviewer does not respond, the conversation will continue
                 reviewer.increment_iteration_messages()
                 message = Message(reviewer.get_name(), reviewer_response)
                 self.conversation.add_message(message)
