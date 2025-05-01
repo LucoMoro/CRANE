@@ -11,9 +11,9 @@
       "model": "distilgpt2",
       "endpoint": "https://api-inference.huggingface.co/models/distilgpt2",
       "api_key": "",
-      "max_new_tokens": 50
+      "max_new_tokens": 10
     },
-    "default_provider": "openai"
+    "default_provider": "huggingface"
   },
   "system_prompt": {
     "context": "You are a reviewer, someone who studies code and makes comments on it. You can takes decision whether to accept or reject changes in the source code that were made by the author (also known as feedback agent).",

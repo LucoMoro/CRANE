@@ -347,7 +347,7 @@ class ConversationManager:
         self.increment_conversation_id()
         self.reset_iteration()
 
-    def fetch_model_feedback(self, summarized_history, input_text) -> str:
+    def fetch_model_feedback(self, summarized_history, input_text) -> str | None:
         """
         Fetches feedback from the model based on the agent's instructions and history.
 
