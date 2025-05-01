@@ -270,6 +270,7 @@ class ConversationManager:
                 self.reset_iteration()
                 self.error_logger.add_error(f"Unable to retrieve RAG's content during the iteration number {self.iteration_id}.")
                 raise RetrievalRAGException(f"Unable to retrieve RAG's content during the iteration number {self.iteration_id}.")
+
         for reviewer in self.reviewers:
             if self.iteration_id != "0":
                 reviewer.set_full_prompt(reviewer.get_instructions(), input_text, rag_content)

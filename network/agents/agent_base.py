@@ -33,8 +33,9 @@ class AgentBase:
                 self.max_tokens = self.hugging_face.get("max_new_tokens", {})
                 self.open_ai = None
 
-            self.context = self.system_prompt.get("context", {})
+            self.context = ""
             self.original_context = self.system_prompt.get("context", {})
+            #self.original_context = "Your"
             self.instructions = self.system_prompt.get("instructions", {})
 
             self.utils = agent_data.get("utils", {})
@@ -165,9 +166,9 @@ class AgentBase:
         input_text_strings = [str(item) for item in input_text]
         self.set_instructions(instructions + "\n\n" .join(input_text_strings)) #needed in order to correctly query the model
         if context is not None:
-            self.set_context(context)
+            self.context = context
         else:
-            self.set_context("")
+            self.context = ""
 
     def get_instructions_from_response(self, response) -> str | None:
         """
@@ -184,7 +185,6 @@ class AgentBase:
             str | None: The extracted instructions as a string, or `None` if no instructions could be extracted or the response format is invalid.
         """
         if self.default_provider == "openai":
-            # todo: check which pattern is produced by the openai response and try to maintain only the output while excluding the input taken by the LLM
             return response.json()[0]["generated_text"]
         elif self.default_provider == "huggingface":
             pattern = r"Instructions: \s*(.*)"
@@ -210,7 +210,6 @@ class AgentBase:
             str | None: The filtered response text with the input prompt removed.
         """
         if self.default_provider == "openai":
-            # todo: check which pattern is produced by the openai response and try to maintain only the output while excluding the input taken by the LLM
             return instructions
         elif self.default_provider == "huggingface":
             result = instructions.replace(self.instructions, "")
@@ -246,7 +245,7 @@ class AgentBase:
         full_context = f"{self.original_context} Past iterations: \n{self.context}"
 
         payload = {
-            "inputs": f"Context: {full_context}\nInstructions: {self.instructions}",
+            "inputs": f"Context: {full_context}\n Instructions: {self.instructions}",
             "parameters": {
                 "max_new_tokens": int(self.max_tokens),  # Add token limit for Hugging Face
             }
