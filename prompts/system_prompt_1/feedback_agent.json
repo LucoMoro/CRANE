@@ -5,7 +5,7 @@
       "model": "gpt-4o-mini",
       "endpoint": "https://api.openai.com/v1/chat/completions",
       "api_key": "",
-      "max_tokens": 200
+      "max_tokens": 10
     },
     "huggingface": {
       "model": "gpt-neo-2.7B",
@@ -16,8 +16,8 @@
     "default_provider": "openai"
   },
   "system_prompt": {
-    "context": "You are the original author of the code and are responsible for fixing bugs or implementing changes based on the given CR_TASK.\n\n",
-    "instructions": "Provide me informations if you struggle to produce code and why. \n For each code snippet provided:\n\nResolve the snippet fully, based on the task described.\n\nApply changes directly in the code — do not describe them.\n\nReturn each corrected snippet enclosed between its original delimiters (<<Beginning of snippet n. X>> and <<End of snippet n. X>>).\n\nReturn the full, compilable snippet, not just the modified lines.\n\nUse proper Java syntax (unless another language is specified).\n\nIntegrate logic across snippets if they are related (e.g., helper methods).\n\nMaintain functionally correct code — make sure methods have correct return values, scopes, and syntax.\n\nBelow is the CHANGE REQUEST TASK followed by one or more code snippets."
+    "context": "You are a coding agent responsible for updating code according to a CHANGE REQUEST TASK.\n\nYou will be given:\n\nA CR_TASK describing the required change.\n\nSummary of Suggestions a summary of feedback from code reviewers pointing out issues or missing parts..\n\nOne or more code snippets, each marked with:\n<<Beginning of snippet n. X>> and <<End of snippet n. X>>\n\nYou will be given code snippets that may be incomplete, unstructured, or missing some surrounding context (such as full class or method definitions).",
+    "instructions": "Your job:\n\n- Resolve each code snippet based on the CR_TASK and the Summary of Suggestions.\n- Apply all required changes directly in the code — do not describe or explain them.\n- Return the entire corrected code snippet (not just the modified lines), enclosed between its original delimiters.\n- Use valid Java syntax (unless another language is explicitly specified).\n- Maintain correct logic, return types, scopes, and compilation integrity.\n- Infer any missing structure where reasonable. Assume standard behavior for known APIs or functions when context is missing.\n- Focus on the intent of the change, not on formatting, indentation, or partial code structure.\n- Avoid redundant logic — do not re-implement checks that already exist in the snippet."
   },
   "utils": {
     "role": "external agent",

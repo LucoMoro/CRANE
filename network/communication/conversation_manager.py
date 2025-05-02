@@ -336,7 +336,7 @@ class ConversationManager:
         while i < 2 and self.stopping_condition == False:
             print(f"Entering in the iteration number {self.get_iteration_id()}")
             self.ensure_iteration_path() # ensures that the iteration's folder path exists
-            self.simulate_iteration(f"CHANGE REQUEST TASK: {cr_task}; Current problem: {current_input_text}")  # simulates the iteration
+            self.simulate_iteration(f"### CR_TASK \n{cr_task}\n\n ### Code snippet\n{current_input_text}")  # simulates the iteration
             self.check_stopping_condition()  # checks if the stopping condition is reached
             if not self.stopping_condition:
                 summarized_history = self.summarize_iteration_history()  # summarizes the previous iteration's history
@@ -358,7 +358,10 @@ class ConversationManager:
         Returns:
             str: The feedback response from the model.
         """
-        task = f"Actionable insights: {summarized_history} \n\n Code to work on: {input_text}"
+        task = (
+            f"### Summary of Suggestions\n{summarized_history}\n\n"
+            f"### Current problem\n{input_text}"
+        )
         self.feedback_agent.set_full_prompt(self.feedback_agent.get_instructions(), task)
         for i in range(0, self.max_retries):
             feedback_response = self.feedback_agent.query_model()
