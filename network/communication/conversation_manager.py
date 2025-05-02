@@ -225,7 +225,7 @@ class ConversationManager:
 
         with open (errors_file, "w") as output:
             output.write(self.error_logger.from_array_to_text(f"iteration n.{self.iteration_id}"))
-        self.error_logger.reset_errors()
+        return None
 
     def simulate_iteration(self, input_text: str = None) -> None:
         """
@@ -333,6 +333,7 @@ class ConversationManager:
                 if reviewer_response is None:
                     self.error_logger.add_error(f"An error occurred wile trying to communicate with {reviewer.get_name()}.")
                     self.from_agent_get_errors(reviewer)
+                    reviewer.set_error_logger([])
                     reviewer_response = "" #the reviewers' messages are non-blocking: if a reviewer does not respond, the conversation will continue
                 reviewer.increment_iteration_messages()
                 message = Message(reviewer.get_name(), reviewer_response)
@@ -379,6 +380,7 @@ class ConversationManager:
         i = 0
         while i < 2 and self.stopping_condition == False:
             print(f"Entering in the iteration number {self.get_iteration_id()}")
+            self.error_logger.reset_errors()
             self.ensure_iteration_path() # ensures that the iteration's folder path exists
             self.simulate_iteration(f"### CR_TASK \n{cr_task}\n\n ### Code snippet\n{current_input_text}")  # simulates the iteration
             self.check_stopping_condition()  # checks if the stopping condition is reached

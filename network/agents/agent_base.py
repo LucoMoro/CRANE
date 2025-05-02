@@ -243,7 +243,7 @@ class AgentBase:
         """
         full_context = (
             f"### System Context\n{self.original_context.strip()}\n\n"
-            f"### Conversation History\n{self.context.strip()}"
+            f"### Conversation History\n{self.context}"
         )
 
         payload = {
