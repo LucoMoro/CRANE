@@ -450,7 +450,7 @@ class ConversationManager:
             SaveRAGException: If saving the summarized history to RAG fails after a successful summarization.
         """
         summarized_response = ""
-        self.moderator.set_full_prompt(self.moderator.get_summarization_prompt(), self.conversation.get_history())
+        self.moderator.set_full_prompt(self.moderator.get_instructions(), self.conversation.get_history())
         for i in range(0, self.max_retries):
             summarized_response = self.moderator.query_model()
             if summarized_response is None:
