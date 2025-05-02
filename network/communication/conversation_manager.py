@@ -229,17 +229,16 @@ class ConversationManager:
 
     def simulate_iteration(self, input_text: str = None) -> None:
         """
-        Simulates a single iteration of the conversation process.
-
-        This method runs the initial review selection using the provided input text,
-        then proceeds through a predefined number of message rounds (determined by
-        `self.messages_per_iteration`). After completing all rounds, it saves the
-        generated model responses, increments the iteration ID, and resets the messages
-        for the next iteration.
+        This method orchestrates the entire conversation flow, simulating
+        a full iteration of the conversation process, consisting of an
+        initial review selection followed by a series of predefined message rounds.
+        After completing all rounds, it saves the generated responses from the model
+        and resets the messages for the next iteration.
 
         Args:
             input_text (str, optional): The input text to initiate the conversation.
-            If None, the method uses a default or pre-existing input.
+            If not provided (None), a default or pre-existing input will be used.
+            This input serves as the starting point for the conversation iteration.
 
         Returns:
             None
@@ -254,15 +253,25 @@ class ConversationManager:
 
     def initial_review_selection(self, input_text):
         """
-        Collects the feedback from the initial reviewers.
+            Performs the initial review selection process by querying the designated reviewers
+            and retrieving relevant RAG (retrieval-augmented generation) content if applicable.
 
-        This function iterates over the list of reviewers and queries their models twice.
-        If a reviewer provides a response, it is added to the conversation history.
-        If the query fails, an error is logged.
+            The function first checks whether the current iteration is not the initial one.
+            If it's not the first iteration, it attempts to retrieve the full RAG content
+            from the conversation history. If retrieval fails, an error is logged, and the
+            iteration is reset. For each reviewer, the function sets the full prompt based
+            on the input text, and if applicable, the retrieved RAG content.
+            It then sends the full prompt to the reviewer's model and handles the response.
 
-        Args:
-            input_text (str): The input text to be reviewed.
-        """
+            If a response is received, it is added as a message to the history conversation.
+            If no response is received or an error occurs, an error message is logged.
+
+            Args:
+                input_text (str): The text to be reviewed and sent to the reviewers.
+
+            Raises:
+                RetrievalRAGException: If RAG content retrieval fails during a non-initial iteration.
+            """
         rag_content = ""
         if self.iteration_id != "0":
             rag_content = self.conversational_rag.retrieve_full_history(self.conversation_id)
@@ -285,17 +294,25 @@ class ConversationManager:
 
     def subsequent_rounds(self, input_text) -> None:
         """
-        Conducts subsequent review rounds by querying reviewers with updated conversation history.
+        Conducts subsequent review rounds by querying reviewers with the updated conversation history.
 
-        This function iterates over the reviewers and updates their prompts using the
-        conversation history. Each reviewer is allowed to respond once per iteration.
-        If a reviewer fails to respond, an error is logged, and the process continues.
+        This function iterates over the list of reviewers, updating their prompts with the
+        conversation history (and potentially RAG content). Each reviewer is allowed to respond
+        once per iteration. If a reviewer fails to respond or encounters an error, an error is logged,
+        and the process continues. This ensures the review process proceeds even if individual reviewers
+        do not provide a response.
 
-        Note: The number of iterations and allowed responses per reviewer are currently
-        set to 1 but can be increased when a more capable LLM is available.
+        The number of iterations and the number of responses per reviewer are currently limited to 1
+        but can be adjusted in the future based on system capabilities.
+
+        Args:
+            input_text (str): The text to be reviewed and sent to the reviewers.
 
         Returns:
             None
+
+        Raises:
+            RetrievalRAGException: If the RAG content retrieval fails during a non-initial iteration.
         """
         rag_content = ""
         if self.iteration_id != "0":
@@ -322,6 +339,33 @@ class ConversationManager:
                 self.conversation.add_message(message)
 
     def simulate_conversation(self, cr_task: str = None, input_text: str = None) -> None:
+        """
+        Simulates a conversation process for a given change request task and input text over multiple iterations.
+
+        This function starts the conversation simulation by ensuring the necessary folder paths exist for both the
+        conversation and iteration. It proceeds with the first iteration based on the provided `cr_task` (change request task)
+        and `input_text`. After simulating the iteration, it summarizes the iteration history and provides the feedback
+        to the model. The simulation continues for up to n iterations, or until a stopping condition is met.
+
+        In each iteration, the history of the previous iteration is summarized, and the model receives the feedback
+        for generating updated input text. If a stopping condition is not met, the iteration continues until the limit is reached.
+
+        Args:
+            cr_task (str, optional): The description of the change request task to be simulated. Defaults to None.
+            input_text (str, optional): The current problem or input text that the conversation is centered around. Defaults to None.
+
+        Returns:
+            None
+
+        Notes:
+            - The simulation process involves multiple iterations, and the stopping condition must be explicitly checked.
+            - The conversation and iteration folder paths are ensured before each iteration.
+            - The simulation proceeds for a maximum of n iterations unless the stopping condition is satisfied earlier.
+            - Errors encountered during the simulation are logged and saved.
+            - The iteration ID is incremented with each cycle, and the conversation ID is incremented once the simulation is complete.
+            - The `simulate_iteration` method is used to simulate each iteration based on the current input text and summarized history.
+        """
+
         self.ensure_conversation_path() #ensures that the conversation's folder path exists
 
         print("Starting the execution of CRANE")
@@ -350,13 +394,23 @@ class ConversationManager:
 
     def fetch_model_feedback(self, summarized_history, input_text) -> str | None:
         """
-        Fetches feedback from the model based on the agent's instructions and history.
+        Fetches feedback from the model based on the reviewers' suggestions and history.
 
-        This method constructs a prompt using the agent's instructions and history.
-        If a response is successfully retrieved, it is returned immediately.
+        This method constructs a prompt by combining the provided summarized history and the
+        current input text, then uses the feedback agent to query the model for a response.
+        The response is returned immediately if successfully retrieved. If the response is
+        not valid or an error occurs, the method retries up to a maximum number of attempts.
+        If all attempts fail, an error is logged, the iteration is reset, and an exception is raised.
+
+        Args:
+            summarized_history: The summarized history of the conversation.
+            input_text: The current problem or input that needs to be addressed in the feedback.
 
         Returns:
-            str: The feedback response from the model.
+            str: The feedback response from the model, or None if unsuccessful after retries.
+
+        Raises:
+            FeedbackException: If the feedback agent fails to provide a valid response after the maximum number of retries.
         """
         task = (
             f"### Summary of Suggestions\n{summarized_history}\n\n"
@@ -377,15 +431,23 @@ class ConversationManager:
 
     def summarize_iteration_history(self) -> str | None:
         """
-        Summarizes the input history using the moderator.
+        Summarizes the iteration's history using the moderator.
 
-        This method constructs a summarization prompt based on the moderator's summarization prompt
-        and the current history. If successful, the history is cleared to make room for the new history,
-        and the summarized response is returned.
+        This method constructs a summarization prompt using the moderator's summarization prompt
+        and the current conversation history. This is sent to the moderator for processing.
+        If a valid response is received, the history is cleared to make room for new input, and
+        the summarized response is saved in the RAG and then returned. If the summarization fails
+        or the moderator doesn't provide a valid response, the method retries up to a maximum number
+        of attempts. If all attempts fail, an error is logged, the iteration is reset, and an
+        exception is raised.
 
         Returns:
-            str: The summarized response from the moderator model.
-                 Returns an empty string if no valid response is obtained.
+            str: The summarized response from the moderator model. If no valid response is obtained after retries,
+            an empty string is returned.
+
+        Raises:
+            SummarizationException: If the moderator fails to provide a valid response after the maximum number of retries.
+            SaveRAGException: If saving the summarized history to RAG fails after a successful summarization.
         """
         summarized_response = ""
         self.moderator.set_full_prompt(self.moderator.get_summarization_prompt(), self.conversation.get_history())
