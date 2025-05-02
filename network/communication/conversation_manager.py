@@ -411,7 +411,7 @@ class ConversationManager:
         Returns:
             bool: returns True if the stopping condition has been met.
         """
-        if all(message["content"] == "Another round is not needed" for message in self.conversation.get_history()):
+        if all(message["content"] == "Another round is not needed." for message in self.conversation.get_history()):
             self.stopping_condition = True
         else:
             self.stopping_condition = False

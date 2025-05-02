@@ -237,15 +237,20 @@ class AgentBase:
 
         Returns:
             dict: A dictionary containing the following keys:
-                - "inputs" (str): A string combining the context and instructions,
-                  formatted as "Context: {self.context}\nInstructions: {self.instructions}".
+                - "inputs" (str): A string combining the context and instructions.
                 - "parameters" (dict): A dictionary containing:
                     - "max_new_tokens" (int): The maximum number of tokens to generate.
         """
-        full_context = f"{self.original_context} Past iterations: \n{self.context}"
+        full_context = (
+            f"### System Context\n{self.original_context.strip()}\n\n"
+            f"### Conversation History\n{self.context.strip()}"
+        )
 
         payload = {
-            "inputs": f"Context: {full_context}\n Instructions: {self.instructions}",
+            "inputs": (
+                f"{full_context}\n\n"
+                f"### Instructions: {self.instructions}"
+            ),
             "parameters": {
                 "max_new_tokens": int(self.max_tokens),  # Add token limit for Hugging Face
             }
@@ -254,22 +259,25 @@ class AgentBase:
 
     def get_openai_payload(self) -> dict:
         """
-            Constructs the payload for an OpenAI API request.
+        Construct the payload for an OpenAI Chat API request.
 
-            This method creates a dictionary payload formatted for OpenAI's
-            chat-based language models (e.g., GPT). The payload includes the
-            model name, context, user instructions, and token limits.
+        This method assembles a payload dictionary compatible with OpenAI's chat-based
+        models (e.g., GPT-4). It merges the original system context and the conversational
+        history into a unified system message, and includes user instructions for the model
+        to respond to.
 
-            Returns:
-                dict: A dictionary containing the following keys:
-                    - "model" (str): The name of the OpenAI model to be used.
-                    - "messages" (list): A list of dictionaries representing the conversation,
-                      with each dictionary containing:
-                        - "role" (str): The role in the conversation ("system" or "user").
-                        - "content" (str): The corresponding text content (context or instructions).
-                    - "max_tokens" (int): The maximum number of tokens to generate.
-            """
-        full_context = f"{self.original_context} Past iterations: \n{self.context}"
+        Returns:
+            dict: A payload dictionary with the following structure:
+                - "model" (str): The name of the OpenAI model to use.
+                - "messages" (list of dict): A list containing:
+                    - {"role": "system", "content": str}: The combined system context and conversation history.
+                    - {"role": "user", "content": str}: The user's current instructions or prompt.
+                - "max_tokens" (int): The maximum number of tokens allowed in the generated response.
+        """
+        full_context = (
+            f"### System Instructions\n{self.original_context.strip()}\n\n"
+            f"### Conversation History\n{self.context}"
+        )
 
         payload = {
             "model": self.model,
