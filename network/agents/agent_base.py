@@ -149,22 +149,25 @@ class AgentBase:
             result = f"System prompt: {self.context} \n prompt: {self.instructions}"
             return result
 
-    def set_full_prompt(self, instructions: str, input_text, context: str = None) -> None:
+    def set_full_prompt(self, instructions: str = None, input_text = None, context: str = None) -> None:
         """
         Sets the instructions and optional context for the model in the initial step.
 
         Changes the context only if a new one is provided.
 
         Args:
-            instructions (str): The prompt of the model.
-            input_text(str): The input of the iteration or conversation which has to be provided to the models.
+            instructions (str): The prompt of the model (default is None).
+            input_text(str): The input of the iteration or conversation which has to be provided to the models (default is None).
             context(str): Additional argument to pass a specific context (default is None).
 
         Returns:
           None
         """
         input_text_strings = [str(item) for item in input_text]
-        self.set_instructions(instructions + "\n\n" .join(input_text_strings)) #needed in order to correctly query the model
+        if self.instructions is not None:
+            self.set_instructions(self.instructions + "\n\n".join(input_text_strings)) #todo: the messages handling could be improved here
+        else:
+            self.set_instructions(instructions + "\n\n" .join(input_text_strings)) #needed in order to correctly query the model
         if context is not None:
             self.context = context
         else:

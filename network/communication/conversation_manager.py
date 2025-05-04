@@ -282,9 +282,9 @@ class ConversationManager:
 
         for reviewer in self.reviewers:
             if self.iteration_id != "0":
-                reviewer.set_full_prompt(reviewer.get_instructions(), input_text, rag_content)
+                reviewer.set_full_prompt(input_text=input_text, context=rag_content)
             else:
-                reviewer.set_full_prompt(reviewer.get_instructions(), input_text)
+                reviewer.set_full_prompt(input_text=input_text)
             reviewer_response = reviewer.query_model()
             if reviewer_response is None:
                 self.error_logger.add_error(f"An error occurred while communicating with {reviewer.get_name()} during the first step.")
@@ -325,9 +325,9 @@ class ConversationManager:
         for reviewer in self.reviewers:
             if self.iteration_id != "0":
                 integrated_data = self.integrate_rag_and_history(rag_content, self.conversation.get_history())
-                reviewer.set_full_prompt(reviewer.get_instructions(), input_text, integrated_data)
+                reviewer.set_full_prompt(input_text=input_text, context=integrated_data)
             else:
-                reviewer.set_full_prompt(reviewer.get_instructions(), input_text, self.conversation.get_history())
+                reviewer.set_full_prompt(input_text=input_text, context=self.conversation.get_history())
             if reviewer.get_iteration_messages() < self.messages_per_iteration: #todo: this check can be potentially removed since the for guarantees already 2 messages max per agent
                 reviewer_response = reviewer.query_model()
                 if reviewer_response is None:
@@ -418,7 +418,7 @@ class ConversationManager:
             f"### Summary of Suggestions\n{summarized_history}\n\n"
             f"### Current problem\n{input_text}"
         )
-        self.feedback_agent.set_full_prompt(self.feedback_agent.get_instructions(), task)
+        self.feedback_agent.set_full_prompt(input_text=task)
         for i in range(0, self.max_retries):
             feedback_response = self.feedback_agent.query_model()
             if feedback_response is None:
@@ -452,7 +452,7 @@ class ConversationManager:
             SaveRAGException: If saving the summarized history to RAG fails after a successful summarization.
         """
         summarized_response = ""
-        self.moderator.set_full_prompt(self.moderator.get_instructions(), self.conversation.get_history())
+        self.moderator.set_full_prompt(input_text=self.conversation.get_history())
         for i in range(0, self.max_retries):
             summarized_response = self.moderator.query_model()
             if summarized_response is None:
