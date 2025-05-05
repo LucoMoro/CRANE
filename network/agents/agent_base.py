@@ -159,15 +159,22 @@ class AgentBase:
             instructions (str): The prompt of the model (default is None).
             input_text(str): The input of the iteration or conversation which has to be provided to the models (default is None).
             context(str): Additional argument to pass a specific context (default is None).
+            message(str): Message that will be shown in the prompt (default is None).
 
         Returns:
           None
         """
         input_text_strings = [str(item) for item in input_text]
         if self.instructions is not None:
-            self.set_instructions(self.instructions + "\n\n".join(input_text_strings)) #todo: the messages handling could be improved here
+                self.set_instructions((
+                    f"### Instructions\n{self.instructions}\n\n"
+                    f"### Data provided as input\n{"".join(input_text_strings)}"
+                ))
         else:
-            self.set_instructions(instructions + "\n\n" .join(input_text_strings)) #needed in order to correctly query the model
+            self.set_instructions((
+                f"### Instructions\n{instructions}\n\n"
+                f"### Data provided as input\n{"".join(input_text_strings)}"
+            )) #needed in order to correctly query the model
         if context is not None:
             self.context = context
         else:

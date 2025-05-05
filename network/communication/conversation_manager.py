@@ -183,40 +183,22 @@ class ConversationManager:
         with open(output_file, "w") as output:
             json.dump(data, output, indent=4)
 
-    def save_moderator_response(self, message, file_name: str) -> None:
+    def save_non_reviewer_response(self, message, file_name: str) -> None:
         """
-        Saves the response of the moderator as a JSON file in the current iteration's directory.
+        Saves the response of the moderator/feedback agent as a JSON file in the current iteration's directory.
 
         Args:
             message: The messages to save. It is expected to be an instance of the Message class.
             file_name (str): the name of the json file in which the response has to be saved
         """
         full_path = os.path.join(self.base_path, f"conversation_{self.get_conversation_id()}/iteration_{self.get_iteration_id()}")
-        moderator_file = os.path.join(full_path, f"{file_name}.json")
+        saving_file = os.path.join(full_path, f"{file_name}.json")
         data = {
             "conversation_id": self.conversation_id,
             "iteration_id": self.iteration_id,
             "response": [message]
         }
-        with open(moderator_file, "w") as output:
-            json.dump(data, output, indent=4)
-
-    def save_feedback_agent_response(self, message, file_name: str) -> None:
-        """
-        Saves the response of the feedback_agent as a JSON file in the current iteration's directory.
-
-        Args:
-            message: The messages to save. It is expected to be an instance of the Message class.
-            file_name (str): the name of the json file in which the response has to be saved
-        """
-        full_path = os.path.join(self.base_path, f"conversation_{self.get_conversation_id()}/iteration_{self.get_iteration_id()}")
-        feedback_agent_file = os.path.join(full_path, f"{file_name}.json")
-        data = {
-            "conversation_id": self.get_conversation_id(),
-            "iteration_id": self.get_iteration_id(),
-            "response": [message]
-        }
-        with open(feedback_agent_file, "w") as output:
+        with open(saving_file, "w") as output:
             json.dump(data, output, indent=4)
 
     def save_errors(self) -> None:
@@ -425,7 +407,7 @@ class ConversationManager:
                 self.error_logger.add_error("An error occurred while communicating with the feedback agent.")
             elif feedback_response is not None:
                 feedback_message = Message(self.feedback_agent.get_name(), feedback_response)
-                self.save_feedback_agent_response(feedback_message.to_dict(), "change")
+                self.save_non_reviewer_response(feedback_message.to_dict(), "change")
                 return feedback_response
         self.reset_iteration()
         self.error_logger.add_error(f"The feedback agent failed to provide a valid response after {self.max_retries} attempts.")
@@ -459,7 +441,7 @@ class ConversationManager:
                 self.error_logger.add_error(f"Attempt {i}: An error occurred while communicating with the moderator during the summarization of the input.")
             elif summarized_response is not None:
                 moderator_message = Message(self.moderator.get_name(), summarized_response)
-                self.save_moderator_response(moderator_message.to_dict(), "summary")
+                self.save_non_reviewer_response(moderator_message.to_dict(), "summary")
                 self.conversation.set_history([]) #if the history is correctly summarized, the iteration's history will be deleted leaving space for the new one
                 save_state = self.conversational_rag.save_iteration(self.conversation_id, self.iteration_id, summarized_response)
                 if save_state == 0:
