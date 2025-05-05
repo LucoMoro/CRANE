@@ -6,10 +6,10 @@ from network.communication.conversation import Conversation
 from network.communication.message import Message
 from network.config import base_path
 from network.utils.error_logger import ErrorLogger
-from network.utils.feedback_exception import FeedbackException
-from network.utils.retrieval_rag_exception import RetrievalRAGException
-from network.utils.save_rag_exception import SaveRAGException
-from network.utils.summarization_exception import SummarizationException
+from network.exceptions.feedback_exception import FeedbackException
+from network.exceptions.retrieval_rag_exception import RetrievalRAGException
+from network.exceptions.save_rag_exception import SaveRAGException
+from network.exceptions.summarization_exception import SummarizationException
 from network.communication.conversational_rag import ConversationalRAG
 
 
@@ -404,7 +404,7 @@ class ConversationManager:
         for i in range(0, self.max_retries):
             feedback_response = self.feedback_agent.query_model()
             if feedback_response is None:
-                self.error_logger.add_error("An error occurred while communicating with the feedback agent.")
+                self.error_logger.add_error(f"Attempt {i}: An error occurred while communicating with the feedback agent.")
             elif feedback_response is not None:
                 feedback_message = Message(self.feedback_agent.get_name(), feedback_response)
                 self.save_non_reviewer_response(feedback_message.to_dict(), "change")
