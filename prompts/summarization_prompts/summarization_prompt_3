@@ -9,7 +9,7 @@ Follow these guidelines:
 - No Attribution to Specific Reviewers: The summary should be neutral and not refer to individual reviewers.
 - Summarize Efficiently: Use precise language. Avoid unnecessary elaboration while ensuring clarity.
 - Avoid superfluous text: Avoid providing examples, even if they were extracted from the reviewers
-- Limit Response Length: The response must fit within **adjust as needed** tokens. Prioritize the most critical iss
+- Limit Response Length: The response must fit within 200 tokens. Prioritize the most critical issues if necessary.
 
 
 PROBLEMS:
