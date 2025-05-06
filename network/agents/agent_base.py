@@ -44,6 +44,8 @@ class AgentBase:
             self.personality = self.utils.get("personality", {})
             self.original_context = f"{self.specialization}\n{self.personality}\n{self.original_context}.\nFurthermore, you have to respond using at most {self.max_tokens} tokens."
 
+            self.input_problem = ""
+            self.additional_context = ""
             self.error_logger = ErrorLogger()
 
         except FileNotFoundError:
@@ -78,10 +80,10 @@ class AgentBase:
         This function assumes that `api_url` (the endpoint URL of the Hugging Face model) and `headers`
         (the request headers, including any required authorization) are defined elsewhere in the code.
         """
-        print(f"Agent: {self.name}\n Context:{self.original_context}\n")
         for i in range(0, self.request_retries):
             try:
                 payload, headers = self.prepare_payload()
+                print(f"Agent: {self.name}\n Payload:{payload}\n")
                 response = requests.post(self.endpoint, headers=headers, json=payload, timeout=self.timeout)
 
                 if response.status_code == 200:
@@ -150,37 +152,6 @@ class AgentBase:
         else:
             result = f"System prompt: {self.context} \n prompt: {self.instructions}"
             return result
-
-    def set_full_prompt(self, instructions: str = None, input_text = None, context: str = None) -> None:
-        """
-        Sets the instructions and optional context for the model in the initial step.
-
-        Changes the context only if a new one is provided.
-
-        Args:
-            instructions (str): The prompt of the model (default is None).
-            input_text(str): The input of the iteration or conversation which has to be provided to the models (default is None).
-            context(str): Additional argument to pass a specific context (default is None).
-            message(str): Message that will be shown in the prompt (default is None).
-
-        Returns:
-          None
-        """
-        input_text_strings = [str(item) for item in input_text]
-        if self.instructions is not None:
-                self.set_instructions((
-                    f"### Instructions\n{self.instructions}\n\n"
-                    f"### Data provided as input\n{"".join(input_text_strings)}"
-                ))
-        else:
-            self.set_instructions((
-                f"### Instructions\n{instructions}\n\n"
-                f"### Data provided as input\n{"".join(input_text_strings)}"
-            )) #needed in order to correctly query the model
-        if context is not None:
-            self.context = context
-        else:
-            self.context = ""
 
     def get_instructions_from_response(self, response) -> str | None:
         """
@@ -286,16 +257,17 @@ class AgentBase:
                     - {"role": "user", "content": str}: The user's current instructions or prompt.
                 - "max_tokens" (int): The maximum number of tokens allowed in the generated response.
         """
+        #todo: add a check to see if additional_context is empty
         full_context = (
             f"### System Instructions\n{self.original_context.strip()}\n\n"
-            f"### Conversation History\n{self.context}"
+            f"### Conversation History\n{self.additional_context}"
         )
 
         payload = {
             "model": self.model,
             "messages": [
                 {"role": "system", "content": full_context},  # Combined context
-                {"role": "user", "content": self.instructions}
+                {"role": "user", "content": f"### Instructions\n{self.instructions}\n### Data provided as input\n{self.input_problem}"}
             ],
             "max_tokens": int(self.max_tokens),
         }
@@ -343,3 +315,15 @@ class AgentBase:
         else:
             self.error_logger.add_error(f"Error {response.status_code}({self.name}): {response.text}")
         return None
+
+    def get_input_problem(self):
+        return self.input_problem
+
+    def set_input_problem(self, input_problem):
+        self.input_problem = input_problem
+
+    def get_additional_context(self):
+        return self.additional_context
+
+    def set_additional_context(self, additional_context):
+        self.additional_context = additional_context
