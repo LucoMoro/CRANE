@@ -83,7 +83,7 @@ class AgentBase:
         for i in range(0, self.request_retries):
             try:
                 payload, headers = self.prepare_payload()
-                print(f"Agent: {self.name}\n Payload:{payload}\n")
+                #print(f"Agent: {self.name}\n Payload:{payload}\n")
                 response = requests.post(self.endpoint, headers=headers, json=payload, timeout=self.timeout)
 
                 if response.status_code == 200:
@@ -226,13 +226,13 @@ class AgentBase:
         """
         full_context = (
             f"### System Context\n{self.original_context.strip()}\n\n"
-            f"### Conversation History\n{self.context}"
+            f"### Conversation History\n{self.additional_context}"
         )
 
         payload = {
             "inputs": (
                 f"{full_context}\n\n"
-                f"### Instructions: {self.instructions}"
+                f"### Instructions\n{self.instructions}\n### Data provided as input\n{self.input_problem}"
             ),
             "parameters": {
                 "max_new_tokens": int(self.max_tokens),  # Add token limit for Hugging Face
@@ -257,11 +257,16 @@ class AgentBase:
                     - {"role": "user", "content": str}: The user's current instructions or prompt.
                 - "max_tokens" (int): The maximum number of tokens allowed in the generated response.
         """
-        #todo: add a check to see if additional_context is empty
-        full_context = (
-            f"### System Instructions\n{self.original_context.strip()}\n\n"
-            f"### Conversation History\n{self.additional_context}"
-        )
+        if self.additional_context == "":
+            full_context = (
+                f"### System Instructions\n{self.original_context.strip()}\n\n"
+                f"### Conversation History\nThere is not yet a conversation history to retrieve."
+            )
+        else:
+            full_context = (
+                f"### System Instructions\n{self.original_context.strip()}\n\n"
+                f"### Conversation History\n{self.additional_context}"
+            )
 
         payload = {
             "model": self.model,
