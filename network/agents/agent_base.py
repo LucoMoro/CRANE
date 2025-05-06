@@ -35,13 +35,14 @@ class AgentBase:
 
             self.context = ""
             self.original_context = self.system_prompt.get("context", {})
-            #self.original_context = "Your"
             self.instructions = self.system_prompt.get("instructions", {})
 
             self.utils = agent_data.get("utils", {})
             self.role = self.utils.get("role", {})
             self.specialization = self.utils.get("specialization", {})
             self.name = self.utils.get("name", {})
+            self.personality = self.utils.get("personality", {})
+            self.original_context = f"{self.specialization}\n{self.personality}\n{self.original_context}.\nFurthermore, you have to respond using at most {self.max_tokens} tokens."
 
             self.error_logger = ErrorLogger()
 
@@ -77,6 +78,7 @@ class AgentBase:
         This function assumes that `api_url` (the endpoint URL of the Hugging Face model) and `headers`
         (the request headers, including any required authorization) are defined elsewhere in the code.
         """
+        print(f"Agent: {self.name}\n Context:{self.original_context}\n")
         for i in range(0, self.request_retries):
             try:
                 payload, headers = self.prepare_payload()

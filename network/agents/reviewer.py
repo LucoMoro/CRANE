@@ -5,7 +5,6 @@ class Reviewer(AgentBase):
     def __init__(self, file_path):
         super().__init__(file_path)
         self.iteration_messages = 0
-        self.personality = self.utils.get("personality", {})
 
     def get_specialization(self) -> str:
         return self.specialization

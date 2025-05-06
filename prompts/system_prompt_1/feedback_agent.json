@@ -22,6 +22,7 @@
   "utils": {
     "role": "external agent",
     "specialization": "programming",
-    "name": "feedback_agent"
+    "name": "feedback_agent",
+    "personality": ""
   }
 }
