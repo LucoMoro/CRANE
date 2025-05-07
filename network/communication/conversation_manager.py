@@ -36,7 +36,7 @@ class ConversationManager:
             self.max_retries = max_retries
 
         if messages_per_iteration is None:
-            self.messages_per_iteration = 1
+            self.messages_per_iteration = 2
         else:
             self.messages_per_iteration = messages_per_iteration
 
@@ -313,16 +313,15 @@ class ConversationManager:
             else:
                 reviewer.set_additional_context(self.conversation.get_history())
                 reviewer.set_input_problem(input_text)
-            if reviewer.get_iteration_messages() < self.messages_per_iteration: #todo: this check can be potentially removed since the for guarantees already 2 messages max per agent
-                reviewer_response = reviewer.query_model()
-                if reviewer_response is None:
-                    self.error_logger.add_error(f"An error occurred wile trying to communicate with {reviewer.get_name()}.")
-                    self.from_agent_get_errors(reviewer)
-                    reviewer.set_error_logger([])
-                    reviewer_response = "" #the reviewers' messages are non-blocking: if a reviewer does not respond, the conversation will continue
-                reviewer.increment_iteration_messages()
-                message = Message(reviewer.get_name(), reviewer_response)
-                self.conversation.add_message(message)
+            reviewer_response = reviewer.query_model()
+            if reviewer_response is None:
+                self.error_logger.add_error(f"An error occurred wile trying to communicate with {reviewer.get_name()}.")
+                self.from_agent_get_errors(reviewer)
+                reviewer.set_error_logger([])
+                reviewer_response = "" #the reviewers' messages are non-blocking: if a reviewer does not respond, the conversation will continue
+            reviewer.increment_iteration_messages()
+            message = Message(reviewer.get_name(), reviewer_response)
+            self.conversation.add_message(message)
 
     def simulate_conversation(self, cr_task: str = None, input_text: str = None) -> None:
         """
