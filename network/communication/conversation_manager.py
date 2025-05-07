@@ -398,11 +398,8 @@ class ConversationManager:
         Raises:
             FeedbackException: If the feedback agent fails to provide a valid response after the maximum number of retries.
         """
-        task = (
-            f"  ## Summary of Suggestions\n{summarized_history}\n\n"
-            f"  ## Current problem\n{input_text}"
-        )
-        self.feedback_agent.set_input_problem(task)
+        self.feedback_agent.set_additional_context(f"  ## Summary of Suggestions\n{summarized_history}\n\n")
+        self.feedback_agent.set_input_problem(f"  ## Current problem\n{input_text}")
         for i in range(0, self.max_retries):
             feedback_response = self.feedback_agent.query_model()
             if feedback_response is None:

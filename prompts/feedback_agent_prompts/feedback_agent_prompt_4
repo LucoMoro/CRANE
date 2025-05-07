@@ -1,0 +1,10 @@
+Your job:
+
+- Resolve each code snippet based on the CR_TASK and the Summary of Suggestions.
+- Apply all required changes directly in the code — do not describe or explain them.
+- Return the entire corrected code snippet (not just the modified lines), enclosed between its original delimiters.
+- Use valid Java syntax (unless another language is explicitly specified).
+- Maintain correct logic, return types, scopes, and compilation integrity.
+- Infer any missing structure where reasonable. Assume standard behavior for known APIs or functions when context is missing.
+- Focus on the intent of the change, not on formatting, indentation, or partial code structure.
+- Avoid redundant logic — do not re-implement checks that already exist in the snippet.
