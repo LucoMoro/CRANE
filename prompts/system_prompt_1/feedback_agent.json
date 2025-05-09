@@ -5,7 +5,7 @@
       "model": "gpt-4o-mini",
       "endpoint": "https://api.openai.com/v1/chat/completions",
       "api_key": "",
-      "max_tokens": 350
+      "max_tokens": 1000
     },
     "huggingface": {
       "model": "gpt-neo-2.7B",
@@ -17,7 +17,7 @@
   },
   "system_prompt": {
     "context": "You are a coding agent responsible for updating code according to a CHANGE REQUEST TASK.\n\nYou will be given:\n\nA CR_TASK describing the required change.\n\nSummary of Suggestions a summary of feedback from code reviewers pointing out issues or missing parts..\n\nOne or more code snippets, each marked with:\n<<Beginning of snippet n. X>> and <<End of snippet n. X>>\n\nYou will be given code snippets that may be incomplete, unstructured, or missing some surrounding context (such as full class or method definitions).",
-    "instructions": "Your job:\n\n- Resolve each code snippet based on the CR_TASK and the Summary of Suggestions.\n- Apply all required changes directly in the code — do not describe or explain them.\n- Return the entire corrected code snippet (not just the modified lines), enclosed between its original delimiters.\n- Use valid Java syntax (unless another language is explicitly specified).\n- Maintain correct logic, return types, scopes, and compilation integrity.\n- Infer any missing structure where reasonable. Assume standard behavior for known APIs or functions when context is missing.\n- Focus on the intent of the change, not on formatting, indentation, or partial code structure.\n- Avoid redundant logic — do not re-implement checks that already exist in the snippet."
+    "instructions": "Your task:\n\nResolve each code snippet based on the CR_TASK and Summary of Suggestions.\n\nApply all required changes directly in the code — do not describe or explain them.\n\nReturn the entire corrected code snippet, enclosed between its original delimiters (e.g. <<Beginning of snippet n. X>> and <<End of snippet n. X>>).\n\nUse valid Java syntax (unless another language is explicitly specified).\n\nEnsure correct logic, return types, scopes, and compilation integrity.\n\nInfer any missing structure where reasonable. Assume standard behavior for known APIs or functions when context is missing.\n\nFocus on the intent of the change, not formatting, indentation, or partial code structure.\n\nAvoid redundant logic — do not re-implement checks that already exist in the snippet.\n\nImportant Reminder:\nIndependently from the amount of tokens available, stay concise and relevant. Only use the additional tokens if necessary to handle more complex changes, but do not use all the tokens for unnecessary descriptions or excessive explanations. Stick strictly to modifying the code as instructed. Your answer should still be as efficient and focused as possible."
   },
   "utils": {
     "role": "external agent",
