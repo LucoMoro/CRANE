@@ -27,47 +27,35 @@ conversation_manager = ConversationManager(conversation)
 
 #conversation_manager.get_conversational_rag().clear_all_data()
 
-conversation_manager.simulate_conversation("""/* CR_TASK Fix issue "Permission Denial: broadcasting Intent ... requires null"
+conversation_manager.simulate_conversation("""/* CR_TASK Fix the Multi-page SMS sending error to several receipents\n\nChange-Id:Iefde94b638413e3c1761f17c3065b20a044e5958Signed-off-by: Sang-Jun Park <sj2202.park@samsung.com>*/""",
+                                           """//<Beginning of snippet n. 0>
 
-The added if corresponds to a similar check on another Permission Denial: broadcasting some pages
-above within the same module.
+old mode 100644
+new mode 100755
 
-The problem was spotted with broadcasting a ACTION_NEW_OUTGOING_CALL intent which currently does not
-require any permissions. It is suggested to require a new permission MAKE_OUTGOING_CALL for the
-broadcast receiver in Phone application. */""",
-                                           """ResolveInfo nextReceiver;
+protected boolean mStorageAvailable = true;
+protected boolean mReportMemoryStatusPending = false;
 
-boolean skip = false;
+protected static int getNextConcatenatedRef() {
+sConcatenatedRef += 1;
+return sConcatenatedRef;
 
-// Check permission for the broadcast receiver component
-int perm = checkComponentPermission(
-        info.activityInfo.permission,
-        r.callingPid,
-        r.callingUid,
-        info.activityInfo.exported ? -1 : info.activityInfo.applicationInfo.uid
-);
+if (sentIntent != null) {
+try {
+                    sentIntent.send(Activity.RESULT_OK);
+} catch (CanceledException ex) {}
+}
+} else {
+if (ar.result != null) {
+fillIn.putExtra("errorCode", ((SmsResponse)ar.result).errorCode);
+}
+                    tracker.mSentIntent.send(mContext, error, fillIn);
 
-if (perm != PackageManager.PERMISSION_GRANTED) {
-    Log.w(TAG, "Permission Denial: broadcasting "
-            + r.intent.toString()
-            + " from " + r.callerPackage
-            + " (pid=" + r.callingPid + ", uid=" + r.callingUid + ")"
-            + " requires " + info.activityInfo.permission
-            + " due to receiver " + info.activityInfo.packageName
-            + "/" + info.activityInfo.name);
-    skip = true;
+} catch (CanceledException ex) {}
+}
 }
 
-// Additional permission check if not coming from system UID
-if (r.callingUid != Process.SYSTEM_UID && r.requiredPermission != null) {
-    try {
-        // Additional logic here...
-    } catch (Exception e) {
-        // Handle exception
-    }
-}
-
-""")
+//<End of snippet n. 0>""")
 
 #rag_content = conversation_manager.get_conversational_rag().retrieve_full_history(str(int(conversation_manager.get_conversation_id())-1))
 #print(f"test {rag_content}")

@@ -3,7 +3,9 @@ import json
 import requests
 from network.config import huggingface_headers, openai_headers
 import re
+import tiktoken
 
+from network.utils.crane_tokenizer import CraneTokenizer
 from network.utils.error_logger import ErrorLogger
 
 
@@ -58,6 +60,8 @@ class AgentBase:
         self.wait_time = 2
         self.timeout = 10
 
+        self.tokenizer = CraneTokenizer(self.model)
+
     def query_model(self) -> str | None:
         """
         Sends a question to a model via a POST request and returns the model's response.
@@ -83,7 +87,7 @@ class AgentBase:
         for i in range(0, self.request_retries):
             try:
                 payload, headers = self.prepare_payload()
-                #print(f"Agent: {self.name}\n Payload:{payload}\n")
+                #print(f"Agent: {self.name}\n Payload:<begin>{payload}</end>\n")
                 response = requests.post(self.endpoint, headers=headers, json=payload, timeout=self.timeout)
 
                 if response.status_code == 200:
@@ -276,6 +280,10 @@ class AgentBase:
             ],
             "max_tokens": int(self.max_tokens),
         }
+
+        #for m in payload["messages"]:
+            #tokens = self.tokenizer.calculate_tokens_from_string(m["content"])
+            #print(f"Agent {self.name} tokens {tokens}")
         return payload
 
     def prepare_payload(self):
@@ -295,6 +303,8 @@ class AgentBase:
         filtered_response = ""
         if self.default_provider == "openai":
             filtered_response = response.json()["choices"][0]["message"]["content"]
+            #output_tokens = response.json()["usage"]["completion_tokens"]
+            #print(f"Agent: {self.name} output tokens {output_tokens}")
         if self.default_provider == "huggingface":
             # print(f"the response length of {self.name} is:" + str(len(response.json()[0]["generated_text"].split())))
             # print(response.json())
