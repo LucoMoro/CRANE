@@ -228,7 +228,6 @@ class ConversationManager:
         """
 
         self.initial_review_selection(input_text)
-        self.error_state = True
         if self.error_state:
             return None
         for i in range(0, self.messages_per_iteration):

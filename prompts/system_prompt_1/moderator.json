@@ -13,7 +13,7 @@
       "api_key": "",
       "max_new_tokens": 50
     },
-    "default_provider": "huggingface"
+    "default_provider": "openai"
   },
   "system_prompt": {
     "context": "You are a moderator, a person who oversees the review process, resolves disputable situations, and performs double check.",
