@@ -41,6 +41,7 @@ class ConversationManager:
             self.messages_per_iteration = messages_per_iteration
 
         self.error_logger = ErrorLogger()
+        self.error_state = False
 
     def get_max_retries(self) -> int:
         return self.max_retries
@@ -227,8 +228,13 @@ class ConversationManager:
         """
 
         self.initial_review_selection(input_text)
+        self.error_state = True
+        if self.error_state:
+            return None
         for i in range(0, self.messages_per_iteration):
             self.subsequent_rounds(input_text)
+            if self.error_state:
+                return None
 
         self.save_model_responses(self.conversation.get_history())
         self.reset_iteration_messages()
@@ -260,7 +266,9 @@ class ConversationManager:
             if rag_content is None:
                 self.reset_iteration()
                 self.error_logger.add_error(f"Unable to retrieve RAG's content during the iteration number {self.iteration_id}.")
-                raise RetrievalRAGException(f"Unable to retrieve RAG's content during the iteration number {self.iteration_id}.")
+                self.error_state = True
+                return None
+                #raise RetrievalRAGException(f"Unable to retrieve RAG's content during the iteration number {self.iteration_id}.")
 
         for reviewer in self.reviewers:
             if self.iteration_id != "0":
@@ -303,7 +311,9 @@ class ConversationManager:
             if rag_content is None:
                 self.reset_iteration()
                 self.error_logger.add_error(f"Unable to retrieve RAG's content during the iteration number {self.iteration_id}.")
-                raise RetrievalRAGException(f"Unable to retrieve RAG's content during the iteration number {self.iteration_id}.")
+                self.error_state = True
+                return None
+                #raise RetrievalRAGException(f"Unable to retrieve RAG's content during the iteration number {self.iteration_id}.")
 
         for reviewer in self.reviewers:
             if self.iteration_id != "0":
@@ -356,8 +366,17 @@ class ConversationManager:
         print("Starting the execution of CRANE")
         self.ensure_iteration_path() #ensures that the iteration's folder path exists
         self.simulate_iteration(f"CHANGE REQUEST TASK: {cr_task}; Current problem: {input_text}") #simulates the iteration
+        if self.error_state:
+            self.save_errors()
+            return None
         summarized_history = self.summarize_iteration_history()  # summarizes the previous iteration's history
+        if self.error_state:
+            self.save_errors()
+            return None
         current_input_text = self.fetch_model_feedback(summarized_history, input_text)  # provides the summarized history as a feedback to the model
+        if self.error_state:
+            self.save_errors()
+            return None
         self.save_errors()
         self.increment_iteration_id()
 
@@ -367,10 +386,19 @@ class ConversationManager:
             self.error_logger.reset_errors()
             self.ensure_iteration_path() # ensures that the iteration's folder path exists
             self.simulate_iteration(f"### CR_TASK \n{cr_task}\n\n ### Code snippet\n{current_input_text}")  # simulates the iteration
+            if self.error_state:
+                self.save_errors()
+                return None
             self.check_stopping_condition()  # checks if the stopping condition is reached
             if not self.stopping_condition:
                 summarized_history = self.summarize_iteration_history()  # summarizes the previous iteration's history
+                if self.error_state:
+                    self.save_errors()
+                    return None
                 current_input_text = self.fetch_model_feedback(summarized_history, current_input_text)  # provides the summarized history as a feedback to the model
+                if self.error_state:
+                    self.save_errors()
+                    return None
             self.save_errors()
             self.increment_iteration_id()
             i=i+1
@@ -410,7 +438,9 @@ class ConversationManager:
                 return feedback_response
         self.reset_iteration()
         self.error_logger.add_error(f"The feedback agent failed to provide a valid response after {self.max_retries} attempts.")
-        raise FeedbackException(f"The feedback agent failed to provide a valid response after {self.max_retries} attempts.")
+        self.error_state = True
+        return None
+        #raise FeedbackException(f"The feedback agent failed to provide a valid response after {self.max_retries} attempts.")
 
     def summarize_iteration_history(self) -> str | None:
         """
@@ -446,11 +476,15 @@ class ConversationManager:
                 if save_state == 0:
                     self.reset_iteration()
                     self.error_logger.add_error(f"Failed to save messages to RAG (iteration_id={self.iteration_id}).")
-                    raise SaveRAGException(f"Failed to save messages to RAG (iteration_id={self.iteration_id}).")
+                    self.error_state = True
+                    return None
+                    #raise SaveRAGException(f"Failed to save messages to RAG (iteration_id={self.iteration_id}).")
                 return summarized_response
         self.reset_iteration()
         self.error_logger.add_error(f"The moderator failed to provide a valid response after {self.max_retries} attempts.")
-        raise SummarizationException(f"The moderator failed to provide a valid response after {self.max_retries} attempts.")
+        self.error_state = True
+        return None
+        #raise SummarizationException(f"The moderator failed to provide a valid response after {self.max_retries} attempts.")
 
     def check_stopping_condition(self) -> None:
         """

@@ -60,7 +60,7 @@ class AgentBase:
         self.wait_time = 2
         self.timeout = 10
 
-        self.tokenizer = CraneTokenizer(self.model)
+        self.tokenizer = CraneTokenizer("gpt-4o-mini-2024-07-18")
 
     def query_model(self) -> str | None:
         """

@@ -1,3 +1,4 @@
 .env
 /scraping/
 /dataset/snippets
+/dataset/tasks_description
