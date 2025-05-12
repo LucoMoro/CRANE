@@ -2,7 +2,7 @@
   "name": "Reviewer 2",
   "api_settings": {
     "openai": {
-      "model": "gpt-4o-mini",
+      "model": "gpt-4o-mini-2024-07-18",
       "endpoint": "https://api.openai.com/v1/chat/completions",
       "api_key": "",
       "max_tokens": 150
