@@ -58,7 +58,7 @@ class AgentBase:
 
         self.request_retries = 1
         self.wait_time = 2
-        self.timeout = 10
+        self.timeout = 60
 
         self.tokenizer = CraneTokenizer("gpt-4o-mini-2024-07-18")
 

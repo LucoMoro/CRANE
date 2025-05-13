@@ -276,6 +276,8 @@ class ConversationManager:
             reviewer_response = reviewer.query_model()
             if reviewer_response is None:
                 self.error_logger.add_error(f"An error occurred while communicating with {reviewer.get_name()} during the first step.")
+                self.from_agent_get_errors(reviewer, "  ")
+                reviewer.set_error_logger([])
             elif reviewer_response is not None:
                 message = Message(reviewer.get_name(), reviewer_response)
                 self.conversation.add_message(message)
@@ -321,7 +323,7 @@ class ConversationManager:
             reviewer_response = reviewer.query_model()
             if reviewer_response is None:
                 self.error_logger.add_error(f"An error occurred wile trying to communicate with {reviewer.get_name()}.")
-                self.from_agent_get_errors(reviewer)
+                self.from_agent_get_errors(reviewer, "  ")
                 reviewer.set_error_logger([])
                 reviewer_response = "" #the reviewers' messages are non-blocking: if a reviewer does not respond, the conversation will continue
             reviewer.increment_iteration_messages()
@@ -433,6 +435,8 @@ class ConversationManager:
             feedback_response = self.feedback_agent.query_model()
             if feedback_response is None:
                 self.error_logger.add_error(f"Attempt {i}: An error occurred while communicating with the feedback agent.")
+                self.from_agent_get_errors(self.feedback_agent, "   ")
+                self.feedback_agent.set_error_logger([])
             elif feedback_response is not None:
                 feedback_message = Message(self.feedback_agent.get_name(), feedback_response)
                 self.save_non_reviewer_response(feedback_message.to_dict(), "change")
@@ -467,6 +471,8 @@ class ConversationManager:
             summarized_response = self.moderator.query_model()
             if summarized_response is None:
                 self.error_logger.add_error(f"Attempt {i}: An error occurred while communicating with the moderator during the summarization of the input.")
+                self.from_agent_get_errors(self.moderator, "   ")
+                self.moderator.set_error_logger([])
             elif summarized_response is not None:
                 moderator_message = Message(self.moderator.get_name(), summarized_response)
                 self.save_non_reviewer_response(moderator_message.to_dict(), "summary")
@@ -498,7 +504,7 @@ class ConversationManager:
         for reviewer in self.reviewers:
             reviewer.set_iteration_messages(0)
 
-    def from_agent_get_errors(self, agent: AgentBase) -> None:
+    def from_agent_get_errors(self, agent: AgentBase, indent: str = "") -> None:
         """
         Collects error logs from a given agent and adds them to the central error logger.
 
@@ -509,7 +515,7 @@ class ConversationManager:
         """
         reviewer_errors = agent.get_error_logger()
         for error in reviewer_errors:
-            self.error_logger.add_error(error)
+            self.error_logger.add_error(f"{indent}{error}")
 
     def get_conversational_rag(self):
         return self.conversational_rag

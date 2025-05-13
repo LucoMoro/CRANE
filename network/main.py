@@ -27,7 +27,7 @@ def main(conversation):
     tasks_description = os.listdir(tasks_description_folder)
     conversation_outcome = ""
 
-    for i in range (0, 2):
+    for i in range (0, 1):
         conversation_manager = ConversationManager(conversation)
         task_description_data = ""
         snippet_data = ""
