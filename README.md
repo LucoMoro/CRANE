@@ -49,6 +49,7 @@ HUGGINGFACE_API_KEY=your_huggingface_api_key
 OPENAI_API_KEY=your_openai_api_key
 PINECONE_KEY=your_pinecone_key
 BASE_PATH=./conversations
+DATASET_PATH=./dataset
 ```
 
 ---
