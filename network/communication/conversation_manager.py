@@ -539,3 +539,9 @@ class ConversationManager:
         self.reset_iteration()
         self.error_logger.add_error(message)
         self.error_state = True
+
+    def get_error_state(self) -> bool:
+        return self.error_state
+
+    def set_error_state(self, error_state):
+        self.error_state = error_state

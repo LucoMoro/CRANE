@@ -9,32 +9,23 @@ from network.communication.conversation import Conversation
 from network.communication.conversation_manager import ConversationManager
 from network.communication.message import Message
 
-def main():
+def conversation_setup():
     moderator = Moderator("../prompts/system_prompt_1/moderator.json")
     reviewer1 = Reviewer("../prompts/system_prompt_1/reviewer_1.json")
     reviewer2 = Reviewer("../prompts/system_prompt_1/reviewer_2.json")
-    #reviewer3 = Reviewer("../prompts/system_prompt_1/reviewer_3.json")
-    #reviewer4 = Reviewer("../prompts/system_prompt_1/reviewer_4.json")
-    #reviewers = [reviewer1, reviewer2, reviewer3, reviewer4]
     reviewers = [reviewer1, reviewer2]
 
     feedback_agent = AgentBase("../prompts/system_prompt_1/feedback_agent.json")
 
     conversation = Conversation(moderator, reviewers, feedback_agent)
+    return conversation
 
-    #response_message = Message("test_1", "test i am writing something In RESPONSE tO: reviewer_1 to test the new feature CAPS TEST")
-    #conversation.add_message(response_message)
-
-    #response_message1 = Message("test_2", "test i am writing something in response to: reviewer_3 to test the new feature CAPS TEST")
-    #conversation.add_message(response_message1)
-
-    #conversation_manager.get_conversational_rag().clear_all_data()
-
+def main(conversation):
     snippets_folder = os.path.join(dataset_path, "snippets")
     tasks_description_folder = os.path.join(dataset_path, "tasks_description")
-
     snippets = os.listdir(snippets_folder)
     tasks_description = os.listdir(tasks_description_folder)
+    conversation_outcome = ""
 
     for i in range (0, 2):
         conversation_manager = ConversationManager(conversation)
@@ -59,10 +50,14 @@ def main():
         print(f"Task file {tasks_description[i]}")
         conversation_manager.simulate_conversation(task, snippet_data)
 
-    #conversation_manager.simulate_conversation()
+        error_state = conversation_manager.get_error_state()
+        if error_state:
+            conversation_outcome = f"An error occurred during the conversation n. {int(conversation_manager.get_conversation_id())-1} while executing the snippet {snippets[i]}."
+        else:
+            conversation_outcome = f"No errors occurred during the conversation n. {int(conversation_manager.get_conversation_id())-1} while executing the snippet {snippets[i]}."
+        print(conversation_outcome)
 
-    #rag_content = conversation_manager.get_conversational_rag().retrieve_full_history(str(int(conversation_manager.get_conversation_id())-1))
-    #print(f"test {rag_content}")
 
 if __name__ == "__main__":
-    main()
+    conv = conversation_setup()
+    main(conv)
