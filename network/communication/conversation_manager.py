@@ -263,9 +263,7 @@ class ConversationManager:
         if self.iteration_id != "0":
             rag_content = self.conversational_rag.retrieve_full_history(self.conversation_id)
             if rag_content is None:
-                self.reset_iteration()
-                self.error_logger.add_error(f"Unable to retrieve RAG's content during the iteration number {self.iteration_id}.")
-                self.error_state = True
+                self.stop_simulation(f"Unable to retrieve RAG's content during the iteration number {self.iteration_id}.")
                 return None
                 #raise RetrievalRAGException(f"Unable to retrieve RAG's content during the iteration number {self.iteration_id}.")
 
@@ -308,9 +306,7 @@ class ConversationManager:
         if self.iteration_id != "0":
             rag_content = self.conversational_rag.retrieve_full_history(self.conversation_id)
             if rag_content is None:
-                self.reset_iteration()
-                self.error_logger.add_error(f"Unable to retrieve RAG's content during the iteration number {self.iteration_id}.")
-                self.error_state = True
+                self.stop_simulation(f"Unable to retrieve RAG's content during the iteration number {self.iteration_id}.")
                 return None
                 #raise RetrievalRAGException(f"Unable to retrieve RAG's content during the iteration number {self.iteration_id}.")
 
@@ -367,14 +363,17 @@ class ConversationManager:
         self.simulate_iteration(f"CHANGE REQUEST TASK: {cr_task}; Current problem: {input_text}") #simulates the iteration
         if self.error_state:
             self.save_errors()
+            self.increment_conversation_id()
             return None
         summarized_history = self.summarize_iteration_history()  # summarizes the previous iteration's history
         if self.error_state:
             self.save_errors()
+            self.increment_conversation_id()
             return None
         current_input_text = self.fetch_model_feedback(summarized_history, input_text)  # provides the summarized history as a feedback to the model
         if self.error_state:
             self.save_errors()
+            self.increment_conversation_id()
             return None
         self.save_errors()
         self.increment_iteration_id()
@@ -387,16 +386,19 @@ class ConversationManager:
             self.simulate_iteration(f"### CR_TASK \n{cr_task}\n\n ### Code snippet\n{current_input_text}")  # simulates the iteration
             if self.error_state:
                 self.save_errors()
+                self.increment_conversation_id()
                 return None
             self.check_stopping_condition()  # checks if the stopping condition is reached
             if not self.stopping_condition:
                 summarized_history = self.summarize_iteration_history()  # summarizes the previous iteration's history
                 if self.error_state:
                     self.save_errors()
+                    self.increment_conversation_id()
                     return None
                 current_input_text = self.fetch_model_feedback(summarized_history, current_input_text)  # provides the summarized history as a feedback to the model
                 if self.error_state:
                     self.save_errors()
+                    self.increment_conversation_id()
                     return None
             self.save_errors()
             self.increment_iteration_id()
@@ -435,9 +437,7 @@ class ConversationManager:
                 feedback_message = Message(self.feedback_agent.get_name(), feedback_response)
                 self.save_non_reviewer_response(feedback_message.to_dict(), "change")
                 return feedback_response
-        self.reset_iteration()
-        self.error_logger.add_error(f"The feedback agent failed to provide a valid response after {self.max_retries} attempts.")
-        self.error_state = True
+        self.stop_simulation(f"The feedback agent failed to provide a valid response after {self.max_retries} attempts.")
         return None
         #raise FeedbackException(f"The feedback agent failed to provide a valid response after {self.max_retries} attempts.")
 
@@ -473,15 +473,11 @@ class ConversationManager:
                 self.conversation.set_history([]) #if the history is correctly summarized, the iteration's history will be deleted leaving space for the new one
                 save_state = self.conversational_rag.save_iteration(self.conversation_id, self.iteration_id, summarized_response)
                 if save_state == 0:
-                    self.reset_iteration()
-                    self.error_logger.add_error(f"Failed to save messages to RAG (iteration_id={self.iteration_id}).")
-                    self.error_state = True
+                    self.stop_simulation(f"Failed to save messages to RAG (iteration_id={self.iteration_id}).")
                     return None
                     #raise SaveRAGException(f"Failed to save messages to RAG (iteration_id={self.iteration_id}).")
                 return summarized_response
-        self.reset_iteration()
-        self.error_logger.add_error(f"The moderator failed to provide a valid response after {self.max_retries} attempts.")
-        self.error_state = True
+        self.stop_simulation(f"The moderator failed to provide a valid response after {self.max_retries} attempts.")
         return None
         #raise SummarizationException(f"The moderator failed to provide a valid response after {self.max_retries} attempts.")
 
@@ -537,5 +533,9 @@ class ConversationManager:
         """
         rag_as_history = [{"sender": "RAG", "content": content} for content in rag_content]
         integrated_data = history + rag_as_history
-
         return integrated_data
+
+    def stop_simulation(self, message: str):
+        self.reset_iteration()
+        self.error_logger.add_error(message)
+        self.error_state = True
