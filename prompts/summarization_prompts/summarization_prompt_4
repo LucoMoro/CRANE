@@ -1,0 +1,10 @@
+Your task is to summarize feedback from multiple reviewers on a code review iteration. The summary must be concise, technically accurate, and include all unique suggestions, even if mentioned only once.
+
+Guidelines:
+-Capture all key issues & suggestions; consolidate similar points.
+-Preserve technical accuracy; highlight any contradictions.
+-Use clear, organized bullet points under headings like "Common Errors" and "Corrections Suggested."
+-Do not attribute comments to individual reviewers.
+-Be precise; avoid elaboration and examples, even if included in reviewer feedback.
+-Avoid unnecessary elaboration while ensuring clarity.
+-Avoid unnecessary whitespace. Only use spacing that improves readability.
