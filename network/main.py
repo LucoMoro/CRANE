@@ -46,20 +46,21 @@ def main(conversation):
         except FileNotFoundError:
             print(f"Error: File {snippets[i]} not found")
 
-        print(f"Snippet file {snippets[i]}")
-        print(f"Task file {tasks_description[i]}")
+        #print(f"Snippet file {snippets[i]}")
+        #print(f"Task file {tasks_description[i]}")
         cr_name, _ = os.path.splitext(snippets[i])
         filtered_cr_name = cr_name.replace("before_", "")
-        print(filtered_cr_name)
+        #print(filtered_cr_name)
         conversation_manager.set_cr_name(filtered_cr_name)
         conversation_manager.simulate_conversation(task, snippet_data)
 
         error_state = conversation_manager.get_error_state()
         if error_state:
-            conversation_outcome = f"An error occurred during the conversation n. {int(conversation_manager.get_conversation_id())-1} while executing the snippet {snippets[i]}."
+            conversation_outcome = f"   An error occurred during the conversation n. {int(conversation_manager.get_conversation_id())-1} while executing the snippet {snippets[i]}."
         else:
-            conversation_outcome = f"No errors occurred during the conversation n. {int(conversation_manager.get_conversation_id())-1} while executing the snippet {snippets[i]}."
+            conversation_outcome = f"   No errors occurred during the conversation n. {int(conversation_manager.get_conversation_id())-1} while executing the snippet {snippets[i]}."
         print(conversation_outcome)
+        print("=======================================================================================================")
 
 
 if __name__ == "__main__":
