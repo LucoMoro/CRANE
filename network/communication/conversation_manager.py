@@ -362,6 +362,7 @@ class ConversationManager:
         self.ensure_conversation_path() #ensures that the conversation's folder path exists
 
         print(f"(conversation {self.conversation_id}): Starting the execution of CRANE for {self.cr_name}")
+        print(f"   Entering in the iteration number {self.get_iteration_id()}")
         self.ensure_iteration_path() #ensures that the iteration's folder path exists
         self.simulate_iteration(f"CHANGE REQUEST TASK: {cr_task}; Current problem: {input_text}") #simulates the iteration
         if self.error_state:
@@ -382,7 +383,7 @@ class ConversationManager:
         self.increment_iteration_id()
 
         i = 0
-        while i < 2 and self.stopping_condition == False:
+        while i < 0 and self.stopping_condition == False:
             print(f"   Entering in the iteration number {self.get_iteration_id()}")
             self.error_logger.reset_errors()
             self.ensure_iteration_path() # ensures that the iteration's folder path exists
