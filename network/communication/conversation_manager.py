@@ -42,6 +42,7 @@ class ConversationManager:
 
         self.error_logger = ErrorLogger()
         self.error_state = False
+        self.cr_name = ""
 
     def get_max_retries(self) -> int:
         return self.max_retries
@@ -439,7 +440,7 @@ class ConversationManager:
                 self.feedback_agent.set_error_logger([])
             elif feedback_response is not None:
                 feedback_message = Message(self.feedback_agent.get_name(), feedback_response)
-                self.save_non_reviewer_response(feedback_message.to_dict(), "change")
+                self.save_non_reviewer_response(feedback_message.to_dict(), f"change_{self.cr_name}")
                 return feedback_response
         self.stop_simulation(f"The feedback agent failed to provide a valid response after {self.max_retries} attempts.")
         return None
@@ -551,3 +552,9 @@ class ConversationManager:
 
     def set_error_state(self, error_state):
         self.error_state = error_state
+
+    def get_cr_name(self) -> str:
+        return self.cr_name
+
+    def set_cr_name(self, cr_name: str):
+        self.cr_name = cr_name

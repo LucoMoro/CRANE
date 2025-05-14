@@ -27,7 +27,7 @@ def main(conversation):
     tasks_description = os.listdir(tasks_description_folder)
     conversation_outcome = ""
 
-    for i in range (0, 1):
+    for i in range (0, 2):
         conversation_manager = ConversationManager(conversation)
         task_description_data = ""
         snippet_data = ""
@@ -48,6 +48,10 @@ def main(conversation):
 
         print(f"Snippet file {snippets[i]}")
         print(f"Task file {tasks_description[i]}")
+        cr_name, _ = os.path.splitext(snippets[i])
+        filtered_cr_name = cr_name.replace("before_", "")
+        print(filtered_cr_name)
+        conversation_manager.set_cr_name(filtered_cr_name)
         conversation_manager.simulate_conversation(task, snippet_data)
 
         error_state = conversation_manager.get_error_state()
