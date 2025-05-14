@@ -10,12 +10,12 @@ from network.communication.conversation_manager import ConversationManager
 from network.communication.message import Message
 
 def conversation_setup():
-    moderator = Moderator("../prompts/system_prompt_1/moderator.json")
-    reviewer1 = Reviewer("../prompts/system_prompt_1/reviewer_1.json")
-    reviewer2 = Reviewer("../prompts/system_prompt_1/reviewer_2.json")
+    moderator = Moderator("../prompts/system_prompt_2/moderator.json")
+    reviewer1 = Reviewer("../prompts/system_prompt_2/reviewer_1.json")
+    reviewer2 = Reviewer("../prompts/system_prompt_2/reviewer_2.json")
     reviewers = [reviewer1, reviewer2]
 
-    feedback_agent = AgentBase("../prompts/system_prompt_1/feedback_agent.json")
+    feedback_agent = AgentBase("../prompts/system_prompt_2/feedback_agent.json")
 
     conversation = Conversation(moderator, reviewers, feedback_agent)
     return conversation
@@ -27,8 +27,13 @@ def main(conversation):
     tasks_description = os.listdir(tasks_description_folder)
     conversation_outcome = ""
 
-    for i in range (0, 2):
-        conversation_manager = ConversationManager(conversation)
+    for i in range (0, 25):
+        try:
+            conversation_manager = ConversationManager(conversation)
+        except Exception as e:
+            print(f"[Pinecone Error] The file {i} will not be executed. Error cause: {e}")
+            continue
+
         task_description_data = ""
         snippet_data = ""
         snippet_path = os.path.join(snippets_folder, snippets[i])

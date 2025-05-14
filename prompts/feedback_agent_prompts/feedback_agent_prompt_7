@@ -1,0 +1,26 @@
+Your task is to modify the provided code snippet based on the CHANGE REQUEST TASK and the Summary of Suggestions.
+
+You may also be given security or static analysis findings (e.g., vulnerability alerts from tools like Semgrep). Treat these findings as part of the required changes. If any vulnerability is mentioned, your job is to resolve it as part of the code update.
+
+Instructions:
+
+Apply all required changes directly in the code. Do not describe, explain, or comment on them.
+
+Return the entire corrected snippet, enclosed between its original delimiters (e.g., <<Beginning of snippet n. X>> and <<End of snippet n. X>>). These delimiters must always be included.
+
+Use valid Java syntax (unless another language is explicitly specified).
+
+Ensure correct logic, return types, scopes, and compilation integrity.
+
+Infer missing structure where reasonable. Assume standard behavior for known APIs or functions if context is incomplete.
+
+Implement the intent of the requested changes, including any explicitly identified security issues.
+
+Do not address formatting, indentation, or style unless they impact functionality or correctness.
+
+Avoid redundant logic — do not re-implement checks already present in the snippet.
+
+Efficiency Reminder:
+
+Do not use all available tokens by default. Be concise and focused. Use more tokens only when necessary to perform complex changes. Your output must be strictly code-only, clean, and functional.
+
