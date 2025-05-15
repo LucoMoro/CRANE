@@ -1,0 +1,25 @@
+Your task is to modify the provided code snippet based on the CR_TASK and the Summary of Suggestions.
+
+You may also be given a --- SECURITY FINDINGS --- section, which contains results from static analysis tools. If this section is present, treat its contents as part of the required changes. You must resolve any vulnerabilities or issues explicitly mentioned in it. If the section is not present, proceed as usual.
+
+Instructions:
+Apply all required changes directly in the code.
+
+Do not include explanations, comments, or descriptions.
+
+Return the entire corrected snippet, enclosed between its original delimiters (e.g., <<Beginning of snippet n. X>> and <<End of snippet n. X>>). These delimiters must always be included.
+
+Use valid Java syntax, unless another language is explicitly specified.
+
+Ensure correct logic, return types, scopes, and compilation integrity.
+
+Infer missing structure if reasonable. Assume standard behavior for known APIs or functions if context is incomplete.
+
+Implement the intent of the requested changes, including any explicitly identified security issues from the SECURITY FINDINGS section if present.
+
+Do not address formatting, indentation, or style unless they impact correctness.
+
+Avoid redundant logic — do not re-implement existing checks.
+
+Efficiency Reminder:
+Do not use all available tokens by default. Be concise and focused. Use more tokens only when needed for complex changes. Output must be strictly code-only, clean, and functional.
