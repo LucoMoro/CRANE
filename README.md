@@ -76,6 +76,7 @@ crane/
 ├── agents/              # Code for individual LLM agents
 ├── network/             # Multi-agent coordination logic
 ├── conversations/       # Saved agent conversations and interactions
+├── dataset/             # Dataset containing the CRs
 ├── utils/               # Helper functions
 ├── prompts/             # Prompts used by the LLMs
 ├── .env                 # Environment variables (not committed)
