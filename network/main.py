@@ -10,12 +10,13 @@ from network.communication.conversation_manager import ConversationManager
 from network.communication.message import Message
 
 def conversation_setup():
-    moderator = Moderator("../prompts/system_prompt_3/moderator.json")
-    reviewer1 = Reviewer("../prompts/system_prompt_3/reviewer_1.json")
-    reviewer2 = Reviewer("../prompts/system_prompt_3/reviewer_2.json")
-    reviewers = [reviewer1, reviewer2]
+    moderator = Moderator("../prompts/system_prompt_4/moderator.json")
+    reviewer1 = Reviewer("../prompts/system_prompt_4/reviewer_1.json")
+    reviewer2 = Reviewer("../prompts/system_prompt_4/reviewer_2.json")
+    reviewer3 = Reviewer("../prompts/system_prompt_4/reviewer_3.json")
+    reviewers = [reviewer1, reviewer2, reviewer3]
 
-    feedback_agent = AgentBase("../prompts/system_prompt_3/feedback_agent.json")
+    feedback_agent = AgentBase("../prompts/system_prompt_4/feedback_agent.json")
 
     conversation = Conversation(moderator, reviewers, feedback_agent)
     return conversation
