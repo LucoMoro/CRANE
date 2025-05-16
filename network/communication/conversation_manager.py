@@ -383,7 +383,7 @@ class ConversationManager:
         self.increment_iteration_id()
 
         i = 0
-        while i < 0 and self.stopping_condition == False:
+        while i < 1 and self.stopping_condition == False:
             print(f"   Entering in the iteration number {self.get_iteration_id()}")
             self.error_logger.reset_errors()
             self.ensure_iteration_path() # ensures that the iteration's folder path exists

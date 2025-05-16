@@ -10,11 +10,10 @@ from network.communication.conversation_manager import ConversationManager
 from network.communication.message import Message
 
 def conversation_setup():
-    moderator = Moderator("../prompts/system_prompt_4/moderator.json")
-    reviewer1 = Reviewer("../prompts/system_prompt_4/reviewer_1.json")
-    reviewer2 = Reviewer("../prompts/system_prompt_4/reviewer_2.json")
-    reviewer3 = Reviewer("../prompts/system_prompt_4/reviewer_3.json")
-    reviewers = [reviewer1, reviewer2, reviewer3]
+    moderator = Moderator("../prompts/system_prompt_3/moderator.json")
+    reviewer1 = Reviewer("../prompts/system_prompt_3/reviewer_1.json")
+    reviewer2 = Reviewer("../prompts/system_prompt_3/reviewer_2.json")
+    reviewers = [reviewer1, reviewer2]
 
     feedback_agent = AgentBase("../prompts/system_prompt_4/feedback_agent.json")
 
@@ -28,7 +27,7 @@ def main(conversation):
     tasks_description = os.listdir(tasks_description_folder)
     conversation_outcome = ""
 
-    for i in range (0, 25):
+    for i in range (0, 2):
         try:
             conversation_manager = ConversationManager(conversation)
         except Exception as e:
