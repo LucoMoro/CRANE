@@ -15,7 +15,7 @@ def conversation_setup():
     reviewer2 = Reviewer("../prompts/system_prompt_3/reviewer_2.json")
     reviewers = [reviewer1, reviewer2]
 
-    feedback_agent = AgentBase("../prompts/system_prompt_4/feedback_agent.json")
+    feedback_agent = AgentBase("../prompts/system_prompt_3/feedback_agent.json")
 
     conversation = Conversation(moderator, reviewers, feedback_agent)
     return conversation
@@ -27,7 +27,7 @@ def main(conversation):
     tasks_description = os.listdir(tasks_description_folder)
     conversation_outcome = ""
 
-    for i in range (0, 2):
+    for i in range (0, 25):
         try:
             conversation_manager = ConversationManager(conversation)
         except Exception as e:
