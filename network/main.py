@@ -29,12 +29,11 @@ def main(conversation):
 
     for i in range (0, 1):
         try:
-            conversation_manager = ConversationManager(conversation)
+            conversation_manager = ConversationManager(conversation, human_role="reviewer", human_flag=True) #reviewer, moderator or feedback_agent are accepted as roles
         except Exception as e:
             print(f"[Pinecone Error] The file {i} will not be executed. Error cause: {e}")
             continue
 
-        task_description_data = ""
         snippet_data = ""
         snippet_path = os.path.join(snippets_folder, snippets[i])
         try:
@@ -51,11 +50,8 @@ def main(conversation):
         except FileNotFoundError:
             print(f"Error: File {snippets[i]} not found")
 
-        #print(f"Snippet file {snippets[i]}")
-        #print(f"Task file {tasks_description[i]}")
         cr_name, _ = os.path.splitext(snippets[i])
         filtered_cr_name = cr_name.replace("before_", "")
-        #print(filtered_cr_name)
         conversation_manager.set_cr_name(filtered_cr_name)
         conversation_manager.simulate_conversation(task, snippet_data)
 

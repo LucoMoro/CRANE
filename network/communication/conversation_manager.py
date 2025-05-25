@@ -6,15 +6,11 @@ from network.communication.conversation import Conversation
 from network.communication.message import Message
 from network.config import base_path
 from network.utils.error_logger import ErrorLogger
-from network.exceptions.feedback_exception import FeedbackException
-from network.exceptions.retrieval_rag_exception import RetrievalRAGException
-from network.exceptions.save_rag_exception import SaveRAGException
-from network.exceptions.summarization_exception import SummarizationException
 from network.communication.conversational_rag import ConversationalRAG
 
 
 class ConversationManager:
-    def __init__(self, conversation: Conversation, max_retries: int = None, messages_per_iteration: int = None):
+    def __init__(self, conversation: Conversation, max_retries: int = None, messages_per_iteration: int = None, human_role: str = "", human_flag: bool = False):
         #fundamental setup
         self.conversation = conversation
         self.moderator = self.conversation.get_moderator()
@@ -43,6 +39,9 @@ class ConversationManager:
         self.error_logger = ErrorLogger()
         self.error_state = False
         self.cr_name = ""
+
+        self.human_role = human_role
+        self.human_flag = human_flag
 
     def get_max_retries(self) -> int:
         return self.max_retries
@@ -283,6 +282,14 @@ class ConversationManager:
                 message = Message(reviewer.get_name(), reviewer_response)
                 self.conversation.add_message(message)
 
+        if self.human_flag == True and self.human_role == "reviewer":
+            print("   >>> Now it's your turn as Reviewer.")
+            print(f"   >>> Additional RAG informations are is: {rag_content}")
+            print(f"   >>> The CR is: {input_text}")
+            reviewer_response = input("   >>> Answer:")
+            message = Message("Human Reviewer", reviewer_response)
+            self.conversation.add_message(message)
+
     def subsequent_rounds(self, input_text) -> None:
         """
         Conducts subsequent review rounds by querying reviewers with the updated conversation history.
@@ -329,6 +336,15 @@ class ConversationManager:
                 reviewer_response = "" #the reviewers' messages are non-blocking: if a reviewer does not respond, the conversation will continue
             reviewer.increment_iteration_messages()
             message = Message(reviewer.get_name(), reviewer_response)
+            self.conversation.add_message(message)
+
+        if self.human_flag == True and self.human_role == "reviewer":
+            print("   >>> Now it's your turn as Reviewer.")
+            print(f"   >>> The conversation is: {self.conversation.get_history()}")
+            print(f"   >>> Additional RAG informations are is: {rag_content}")
+            print(f"   >>> The CR is: {input_text}")
+            reviewer_response = input("   >>> Answer:")
+            message = Message("Human Reviewer", reviewer_response)
             self.conversation.add_message(message)
 
     def simulate_conversation(self, cr_task: str = None, input_text: str = None) -> None:
@@ -431,20 +447,29 @@ class ConversationManager:
         Raises:
             FeedbackException: If the feedback agent fails to provide a valid response after the maximum number of retries.
         """
-        self.feedback_agent.set_additional_context(f"  ## Summary of Suggestions\n{summarized_history}\n\n")
-        self.feedback_agent.set_input_problem(f"  ## Current problem\n{input_text}")
-        for i in range(0, self.max_retries):
-            feedback_response = self.feedback_agent.query_model()
-            if feedback_response is None:
-                self.error_logger.add_error(f"Attempt {i}: An error occurred while communicating with the feedback agent.")
-                self.from_agent_get_errors(self.feedback_agent, "   ")
-                self.feedback_agent.set_error_logger([])
-            elif feedback_response is not None:
-                feedback_message = Message(self.feedback_agent.get_name(), feedback_response)
-                self.save_non_reviewer_response(feedback_message.to_dict(), f"change_{self.cr_name}")
-                return feedback_response
-        self.stop_simulation(f"The feedback agent failed to provide a valid response after {self.max_retries} attempts.")
-        return None
+        if self.human_flag == True and self.human_role == "feedback_agent":
+            print("   >>> Now it's your turn as Feedback Agent.")
+            print(f"   >>> The Summary of Suggestions is: \n {summarized_history}")
+            print(f"   >>> The problem is: {input_text}")
+            feedback_response = input("   >>> Answer:")
+            feedback_message = Message("Human Feedback Agent", feedback_response)
+            self.save_non_reviewer_response(feedback_message.to_dict(), f"change_{self.cr_name}")
+            return feedback_response
+        else:
+            self.feedback_agent.set_additional_context(f"  ## Summary of Suggestions\n{summarized_history}\n\n")
+            self.feedback_agent.set_input_problem(f"  ## Current problem\n{input_text}")
+            for i in range(0, self.max_retries):
+                feedback_response = self.feedback_agent.query_model()
+                if feedback_response is None:
+                    self.error_logger.add_error(f"Attempt {i}: An error occurred while communicating with the feedback agent.")
+                    self.from_agent_get_errors(self.feedback_agent, "   ")
+                    self.feedback_agent.set_error_logger([])
+                elif feedback_response is not None:
+                    feedback_message = Message(self.feedback_agent.get_name(), feedback_response)
+                    self.save_non_reviewer_response(feedback_message.to_dict(), f"change_{self.cr_name}")
+                    return feedback_response
+            self.stop_simulation(f"The feedback agent failed to provide a valid response after {self.max_retries} attempts.")
+            return None
         #raise FeedbackException(f"The feedback agent failed to provide a valid response after {self.max_retries} attempts.")
 
     def summarize_iteration_history(self) -> str | None:
@@ -468,26 +493,40 @@ class ConversationManager:
             SaveRAGException: If saving the summarized history to RAG fails after a successful summarization.
         """
         summarized_response = ""
-        self.moderator.set_input_problem(self.conversation.get_history())
-        for i in range(0, self.max_retries):
-            summarized_response = self.moderator.query_model()
-            if summarized_response is None:
-                self.error_logger.add_error(f"Attempt {i}: An error occurred while communicating with the moderator during the summarization of the input.")
-                self.from_agent_get_errors(self.moderator, "   ")
-                self.moderator.set_error_logger([])
-            elif summarized_response is not None:
-                moderator_message = Message(self.moderator.get_name(), summarized_response)
-                self.save_non_reviewer_response(moderator_message.to_dict(), "summary")
-                self.conversation.set_history([]) #if the history is correctly summarized, the iteration's history will be deleted leaving space for the new one
-                save_state = self.conversational_rag.save_iteration(self.conversation_id, self.iteration_id, summarized_response)
-                if save_state == 0:
-                    self.stop_simulation(f"Failed to save messages to RAG (iteration_id={self.iteration_id}).")
-                    return None
-                    #raise SaveRAGException(f"Failed to save messages to RAG (iteration_id={self.iteration_id}).")
-                return summarized_response
-        self.stop_simulation(f"The moderator failed to provide a valid response after {self.max_retries} attempts.")
-        return None
-        #raise SummarizationException(f"The moderator failed to provide a valid response after {self.max_retries} attempts.")
+        if self.human_flag == True and self.human_role == "moderator":
+            print(f"   >>> Now it's your turn as Moderator.")
+            print(f"   >>> The Suggestions are {self.conversation.get_history()}")
+            summarized_response = input(f"   >>> Answer:")
+            moderator_message = Message("Human Moderator", summarized_response)
+            self.save_non_reviewer_response(moderator_message.to_dict(), "summary")
+            self.conversation.set_history([])  # if the history is correctly summarized, the iteration's history will be deleted leaving space for the new one
+            save_state = self.conversational_rag.save_iteration(self.conversation_id, self.iteration_id,summarized_response)
+            if save_state == 0:
+                self.stop_simulation(f"Failed to save messages to RAG (iteration_id={self.iteration_id}).")
+                return None
+                # raise SaveRAGException(f"Failed to save messages to RAG (iteration_id={self.iteration_id}).")
+            return summarized_response
+        else:
+            self.moderator.set_input_problem(self.conversation.get_history())
+            for i in range(0, self.max_retries):
+                summarized_response = self.moderator.query_model()
+                if summarized_response is None:
+                    self.error_logger.add_error(f"Attempt {i}: An error occurred while communicating with the moderator during the summarization of the input.")
+                    self.from_agent_get_errors(self.moderator, "   ")
+                    self.moderator.set_error_logger([])
+                elif summarized_response is not None:
+                    moderator_message = Message(self.moderator.get_name(), summarized_response)
+                    self.save_non_reviewer_response(moderator_message.to_dict(), "summary")
+                    self.conversation.set_history([]) #if the history is correctly summarized, the iteration's history will be deleted leaving space for the new one
+                    save_state = self.conversational_rag.save_iteration(self.conversation_id, self.iteration_id, summarized_response)
+                    if save_state == 0:
+                        self.stop_simulation(f"Failed to save messages to RAG (iteration_id={self.iteration_id}).")
+                        return None
+                        #raise SaveRAGException(f"Failed to save messages to RAG (iteration_id={self.iteration_id}).")
+                    return summarized_response
+            self.stop_simulation(f"The moderator failed to provide a valid response after {self.max_retries} attempts.")
+            return None
+            #raise SummarizationException(f"The moderator failed to provide a valid response after {self.max_retries} attempts.")
 
     def check_stopping_condition(self) -> None:
         """
