@@ -27,7 +27,7 @@ def main(conversation):
     tasks_description = os.listdir(tasks_description_folder)
     conversation_outcome = ""
 
-    for i in range (0, 25):
+    for i in range (0, 1):
         try:
             conversation_manager = ConversationManager(conversation)
         except Exception as e:
