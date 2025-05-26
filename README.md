@@ -6,6 +6,7 @@
 ![Status](https://img.shields.io/badge/status-research--project-yellow)
 ![Dependencies](https://img.shields.io/badge/dependencies-up%20to%20date-brightgreen)
 ![Made with](https://img.shields.io/badge/Made%20with-LLMs-red)
+[![DOI](https://zenodo.org/badge/885493473.svg)](https://doi.org/10.5281/zenodo.15518674)
 
 CRANE is a research-driven system designed to explore the potential of Large Language Models (LLMs) in automating and enhancing the code review process through multi-agent collaboration. At its core, CRANE transforms the traditional code review workflow into a network of LLM agents that engage in structured conversations, each playing a specialized role in reviewing, critiquing, and ultimately resolving code review comments (CRs).
 
