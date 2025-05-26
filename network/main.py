@@ -29,7 +29,7 @@ def main(conversation):
 
     for i in range (0, 1):
         try:
-            conversation_manager = ConversationManager(conversation, human_role="reviewer", human_flag=True) #reviewer, moderator or feedback_agent are accepted as roles
+            conversation_manager = ConversationManager(conversation, human_role="reviewer", human_flag=False) #reviewer, moderator or feedback_agent are accepted as roles
         except Exception as e:
             print(f"[Pinecone Error] The file {i} will not be executed. Error cause: {e}")
             continue
