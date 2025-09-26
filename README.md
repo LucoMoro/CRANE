@@ -26,7 +26,7 @@ cd CRANE
 ### 2. Install Dependencies 
 Make sure you have Python installed (preferably 3.12.9), then:
 
-## On Ubuntu/Linux
+## On Ubuntu/Linux and macOS
 Important: Before installing, open requirements.txt and remove the following line: 
 ```bash
 pywin32==310
@@ -53,10 +53,11 @@ BASE_PATH=./conversations
 DATASET_PATH=./dataset
 ```
 
----
-### OS-Specific Notes
+### 4. Running CRANE
+A sample Change Request (CR) has already been included in the dataset folder.  
+This allows you to quickly test whether the model and environment are working correctly before adding your own CRs.
 
-## On Ubuntu/Linux
+## On Ubuntu/Linux and macOS
 Ensure model paths in the code do not include "../" — update them to be relative (e.g. "models/..." instead of "../models/..."). To run the project:
 ```bash
 python3 -m network.main
@@ -77,7 +78,9 @@ crane/
 ├── agents/              # Code for individual LLM agents
 ├── network/             # Multi-agent coordination logic
 ├── conversations/       # Saved agent conversations and interactions
-├── dataset/             # Dataset containing the CRs
+├── dataset/             # Folder containing the CRs
+│   ├── snippets/        # CRs' code snippets
+│   └── tasks_description/ # CR's Task descriptions
 ├── utils/               # Helper functions
 ├── prompts/             # Prompts used by the LLMs
 ├── .env                 # Environment variables (not committed)
